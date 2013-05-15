@@ -10,11 +10,11 @@ const int PL_OUT = 14;
 const int L_COUNT = 3*16;
 
 enum LEDState {
-  L_OFF,
-  L_ON,
-  L_FLASH_A,
-  L_FLASH_B,
-  L_FLICKER,
+  L_OFF =0,
+  L_ON =1,
+  L_FLASH_A =2,
+  L_FLASH_B =3,
+  L_FLICKER =4,
 
   L_LAST
 };
@@ -100,6 +100,9 @@ void setup() {
 
 
 void readKeys() {
+  digitalWrite(PL_OUT,HIGH);
+  digitalWrite(ST_OUT,HIGH);
+  digitalWrite(ST_OUT,LOW);
   digitalWrite(PL_OUT,LOW);
   digitalWrite(ST_OUT,HIGH);
   digitalWrite(ST_OUT,LOW);
@@ -113,26 +116,36 @@ void readKeys() {
   digitalWrite(PL_OUT,LOW);
 }
 
+void exec(char *buf) {
+  char cmd = buf[0];
+  switch(cmd) {
+    case 'r':
+      readKeys();
+      break;
+    case 'l':
+      l.setLED(buf[1],(LEDState)buf[2]);
+      break;
+    case 'i':
+      l.setIlluminated(buf[1],(LEDState)buf[2]);
+  }
+}
+  
 int i = 0;
 char buf[20];
 int bidx = 0;
 
 void loop() {
-  for (int i = 0; i < LED_COUNT; i++) {  
-    l.setLED(i,L_ON);
-    //l.show(0);
-    delay(200);
-    l.setLED(i,L_FLASH_A);
-    if (i % 3 == 0) l.setLED(i,L_FLASH_B);
+  int r;
+  while ((r=Serial.read()) != -1) {
+    if (r == '\n' || r == '\r') {
+      buf[bidx] = 0;
+      exec(buf);
+      bidx = 0;
+    } else {
+      buf[bidx++] = r;
+      if (bidx > 19) bidx = 19;
+    }
   }
-  for (int i = 0; i < ILLUMINATED_COUNT; i++) {  
-    l.setIlluminated(i,L_ON);
-    //l.show(0);
-    delay(200);
-    l.setIlluminated(i,L_OFF);
-    if (i % 5 == 0) l.setIlluminated(i,L_FLICKER);
-  }
-  //readKeys();
 }
 
 volatile uint8_t cycle = 0;

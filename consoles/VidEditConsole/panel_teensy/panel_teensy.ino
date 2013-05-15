@@ -3,9 +3,9 @@
 #include <avr/interrupt.h>
 
 const int DATA_IN = 18;
-const int SH_OUT = 16;
-const int ST_OUT = 15;
-const int PL_OUT = 14;
+const int SH_OUT = 17;
+const int ST_OUT = 16;
+const int PL_OUT = 15;
 
 const int L_COUNT = 3*16;
 
@@ -101,16 +101,24 @@ void setup() {
 
 void readKeys() {
   digitalWrite(PL_OUT,HIGH);
+    delayMicroseconds(5);
   digitalWrite(ST_OUT,HIGH);
+    delayMicroseconds(5);
   digitalWrite(ST_OUT,LOW);
+    delayMicroseconds(5);
   digitalWrite(PL_OUT,LOW);
+    delayMicroseconds(5);
   digitalWrite(ST_OUT,HIGH);
+    delayMicroseconds(5);
   digitalWrite(ST_OUT,LOW);
+    delayMicroseconds(5);
   digitalWrite(PL_OUT,HIGH);
+    delayMicroseconds(5);
   for (int i = 0; i < 16; i++) {
     digitalWrite(SH_OUT,HIGH);
     Serial.print(digitalRead(DATA_IN));
     digitalWrite(SH_OUT,LOW);
+    delayMicroseconds(5);
   }
   Serial.println();
   digitalWrite(PL_OUT,LOW);

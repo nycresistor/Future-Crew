@@ -4,6 +4,7 @@
 
 const int L_COUNT = 3*16;
 
+const int LATCH_PIN = 18;
 enum LEDState {
   L_OFF =0,
   L_ON =1,
@@ -53,6 +54,7 @@ void LEDMap::setIlluminated(int idx, LEDState value) {
 }
 
 void LEDMap::show(int cycle) {
+  digitalWrite(LATCH_PIN,LOW);
   for (int8_t i = 0; i < L_COUNT; ) {
     uint8_t b = 0;
     for (int8_t j = 0; j < 8; j++, i++) {
@@ -68,12 +70,15 @@ void LEDMap::show(int cycle) {
     }
     SPI.transfer(b);
   }   
+  digitalWrite(LATCH_PIN,HIGH);
 }
 
 LEDMap l;
 
 void setup() {
   l.clear();
+  pinMode(LATCH_PIN,OUTPUT);
+  digitalWrite(LATCH_PIN,HIGH);
   // initialize SPI:
   SPI.begin(); 
   SPI.setClockDivider(SPI_CLOCK_DIV16);
@@ -86,17 +91,45 @@ void setup() {
   TIMSK3 = 0x01; // enable overflow interrupt
 }
 
+int parse(char*& buf) {
+  int rv = 0;
+  while (*buf >= '0' && *buf <= '9') {
+    rv *= 10;
+    rv += *buf - '0';
+    buf++;
+  }
+  return rv;
+}
+
 void exec(char *buf) {
   char cmd = buf[0];
   switch(cmd) {
+    case 'I':
+      Serial.println("teensy");
+      break;
     case 'r':
-      Serial.println("Read on other teensy.");
+      Serial.println("Read on other teensy.");     
       break;
     case 'l':
-      l.setLED(buf[1],(LEDState)buf[2]);
+      {
+        buf++;
+        int i = parse(buf);
+        if (*buf != ':') break; // abort
+        buf++;
+        int j = parse(buf);
+        l.setLED(i,(LEDState)j);
+      }
       break;
     case 'i':
-      l.setIlluminated(buf[1],(LEDState)buf[2]);
+      {
+        buf++;
+        int i = parse(buf);
+        if (*buf != ':') break; // abort
+        buf++;
+        int j = parse(buf);
+        l.setIlluminated(i,(LEDState)j);
+      }
+      break;
   }
 }
   

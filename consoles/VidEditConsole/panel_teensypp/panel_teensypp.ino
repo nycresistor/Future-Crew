@@ -2,10 +2,11 @@
 // mapping for keypresses for illuminated buttons
 const int ILLUM_COUNT = 25;
 int illum_keys[ILLUM_COUNT] = {
-  27,  0,  4,  5,  6, 32,  8,  9,
-  10, 11, 12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23, 24, 25, 
-  26
+  8, 
+  4, 5, 11, 6,
+  9, 32, 10,
+  16, 15, 14, 17, 0,
+  13, 18, 12, 19, 26, 27, 24, 23, 25, 22, 21, 20
 };
 
 void setup() {
@@ -16,10 +17,7 @@ void setup() {
 
 void readKeys() {
   for (int i =0; i < ILLUM_COUNT; i++) {
-    if (digitalRead(illum_keys[i]) == HIGH) { 
-      Serial.print(illum_keys[i]);
-      Serial.print(" ");
-    }
+    Serial.print((digitalRead(illum_keys[i]) == HIGH)?"1":"0");
   }
   Serial.println();
 }
@@ -27,6 +25,9 @@ void readKeys() {
 void exec(char *buf) {
   char cmd = buf[0];
   switch(cmd) {
+    case 'I':
+      Serial.println("teensypp");
+      break;
     case 'r':
       readKeys();
       break;
@@ -48,7 +49,5 @@ void loop() {
       if (bidx > 19) bidx = 19;
     }
   }
-  delay(100);
-  readKeys();
 }
 

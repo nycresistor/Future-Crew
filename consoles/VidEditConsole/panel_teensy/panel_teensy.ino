@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-const int DATA_IN = 18;
-const int SH_OUT = 17;
-const int ST_OUT = 16;
-const int PL_OUT = 15;
-
 const int L_COUNT = 3*16;
 
 enum LEDState {
@@ -82,13 +77,6 @@ void setup() {
   // initialize SPI:
   SPI.begin(); 
   SPI.setClockDivider(SPI_CLOCK_DIV16);
-  pinMode(DATA_IN, INPUT);
-  pinMode(SH_OUT, OUTPUT);
-  pinMode(ST_OUT, OUTPUT);
-  pinMode(PL_OUT, OUTPUT);
-  digitalWrite(PL_OUT,LOW);
-  digitalWrite(ST_OUT,LOW);
-  digitalWrite(SH_OUT,LOW);
   Serial.begin(9600);
   Serial.println("Ready.");
   // Init timer3: Fast PWM mode, 10-bit (0111)
@@ -98,37 +86,11 @@ void setup() {
   TIMSK3 = 0x01; // enable overflow interrupt
 }
 
-
-void readKeys() {
-  digitalWrite(PL_OUT,HIGH);
-    delayMicroseconds(5);
-  digitalWrite(ST_OUT,HIGH);
-    delayMicroseconds(5);
-  digitalWrite(ST_OUT,LOW);
-    delayMicroseconds(5);
-  digitalWrite(PL_OUT,LOW);
-    delayMicroseconds(5);
-  digitalWrite(ST_OUT,HIGH);
-    delayMicroseconds(5);
-  digitalWrite(ST_OUT,LOW);
-    delayMicroseconds(5);
-  digitalWrite(PL_OUT,HIGH);
-    delayMicroseconds(5);
-  for (int i = 0; i < 16; i++) {
-    digitalWrite(SH_OUT,HIGH);
-    Serial.print(digitalRead(DATA_IN));
-    digitalWrite(SH_OUT,LOW);
-    delayMicroseconds(5);
-  }
-  Serial.println();
-  digitalWrite(PL_OUT,LOW);
-}
-
 void exec(char *buf) {
   char cmd = buf[0];
   switch(cmd) {
     case 'r':
-      readKeys();
+      Serial.println("Read on other teensy.");
       break;
     case 'l':
       l.setLED(buf[1],(LEDState)buf[2]);

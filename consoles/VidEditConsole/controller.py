@@ -24,7 +24,11 @@ imap = [(False,0)]*illum_count
 
 for i in range(illum_count):
     t.write('i{0}:{1}\n'.format(i,0))
-    
+
+t.write('m\\x0cmBoot sequence\\ncomplete.\n')
+time.sleep(0.5)
+t.write('m\\x0c\n')
+
 while True:
     time.sleep(0.05)
     tpp.write('r\n')
@@ -36,5 +40,6 @@ while True:
             # button down press
             mode = (mode + 1) % 5
             t.write('i{0}:{1}\n'.format(i,mode))
+            t.write('m\\x0cBUTTON {0}\n'.format(i))
             print('Button {0} pressed'.format(i))
         imap[i] = (newp,mode)

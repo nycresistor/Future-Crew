@@ -83,7 +83,7 @@ void setup() {
   SPI.begin(); 
   SPI.setClockDivider(SPI_CLOCK_DIV16);
   Serial.begin(9600);
-  Serial.println("Ready.");
+  Serial1.begin(19200);
   // Init timer3: Fast PWM mode, 10-bit (0111)
   TCCR3A = 0x03;
   TCCR3B = 0x08 | 0x03; // cs = 3; 1/64 prescaler
@@ -101,6 +101,19 @@ int parse(char*& buf) {
   return rv;
 }
 
+int hex(char h) {
+  if (h >= '0' && h <= '9') {
+    return h-'0';
+  }
+  if (h >= 'a' && h <= 'f') {
+    return (h-'a')+10;
+  }
+  if (h >= 'A' && h <= 'F') {
+    return (h-'A')+10;
+  }
+  return 0;
+}
+
 void exec(char *buf) {
   char cmd = buf[0];
   switch(cmd) {
@@ -109,6 +122,34 @@ void exec(char *buf) {
       break;
     case 'r':
       Serial.println("Read on other teensy.");     
+      break;
+    case 'm':
+      {
+        buf++;
+        boolean escaped = false;
+        while (*buf != '\0') {
+          if (escaped) {
+            if (*buf == 'n') Serial1.write('\n');
+            else if (*buf == 'r') Serial1.write('\r');
+            else if (*buf == 'x') {
+              buf++;
+              if (*buf == 0) break;
+              int x = hex(*(buf++));
+              if (*buf == 0) break;
+              x *= 16;
+              x += hex(*buf);
+              Serial1.write(x); }
+            else Serial1.write(*buf);
+            escaped = false;
+          }
+          else if (*buf == '\\') {
+            escaped = true;
+          } else {
+            Serial1.write(*buf);
+          }
+          buf++;
+        }
+      }
       break;
     case 'l':
       {
@@ -132,9 +173,10 @@ void exec(char *buf) {
       break;
   }
 }
-  
+
+const int BUFSZ = 500;
 int i = 0;
-char buf[20];
+char buf[BUFSZ];
 int bidx = 0;
 
 void loop() {
@@ -146,7 +188,7 @@ void loop() {
       bidx = 0;
     } else {
       buf[bidx++] = r;
-      if (bidx > 19) bidx = 19;
+      if (bidx > BUFSZ-1) bidx = BUFSZ-1;
     }
   }
 }

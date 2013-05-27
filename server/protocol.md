@@ -3,7 +3,7 @@ BIG FAT REFACTOR: Tornado isn't really set up for the kind of messaging I was tr
 Registration
 ------------
 
-Must be the first transaction. An ID is assigned to the console. This is the only transaction that does not require an ID.
+Must be the first transaction.
 
 Query:
 { 
@@ -13,7 +13,6 @@ Query:
 Response:
 {
     'ok': _Boolean_,
-    'id': _numeric id assigned by server_
 }
 
 Status
@@ -25,7 +24,6 @@ Everything is shoehorned into these requests.
 
 Query:
 {
-    'id': _numeric id assigned by server_
     'avail_slots': _list of available message slots_
     'game_updates': _updates on currently running game(s)_
     'avail_games': _suggested games_

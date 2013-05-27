@@ -2,37 +2,35 @@ import tornado.ioloop
 import tornado.web
 from tornado import websocket
 import json
-import threading
 import time
 
+# Refactoring: all requests start at the consoles. A supervisory thread
+# takes care of console timeouts, etc.
 class Game:
+    """The game object manages the console list and any global
+    information like score, game time, etc."""
     def __init__(self):
         self.consoles = {}
-        self.game_lock = threading.Lock()
         self.next_id = 0
     def add_console(self,console):
-        self.game_lock.acquire()
         console.id = self.next_id
         self.next_id = self.next_id + 1
-        self.consoles[console.name] = console
-        self.game_lock.release()
+        self.consoles[console.id] = console
         print "+ Added {0} console, id {1}".format(console.name,console.id)
     def remove_console(self,console):
+        if self.consoles.has_key(console.id):
+            del self.consoles[console.id]
+            print "- Removed {0} console, id {1}".format(console.name,console.id)
+        else:
+            print "*** Attempted to remove console {0}, id {1}".format(console.name,console.id)
+    def get_console(self,id):
+        return self.consolles.
         self.game_lock.acquire()
-        del self.consoles[console.name]
-        self.game_lock.release()
-        print "- Removed {0} console, id {1}".format(console.name,console.id)
-    def status_callback(self,console,message):
-        print "status from {0}: {1}".format(console,message)
-    def find_available_consoles(self):
+    def get_all_consoles(self):
         self.game_lock.acquire()
         consoles = self.consoles.copy()
         self.game_lock.release()
-        for_messages, for_games = [],[]
-        status_msg = {'a':'status'}
-        for (name,console) in self.consoles.items():
-            console.write_query(status_msg,self.status_callback)
-
+        return consoles
 
 portNum = 8888
 

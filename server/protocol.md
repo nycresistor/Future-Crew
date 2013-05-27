@@ -1,13 +1,13 @@
+BIG FAT REFACTOR: Tornado isn't really set up for the kind of messaging I was trying to do, so instead we're doing things in a more traditional webby kind of way (consoles initiate all transactions).
 
 Registration
 ------------
 
-Initiated by console. All other queries are posted by the server.
+Must be the first transaction. An ID is assigned to the console. This is the only transaction that does not require an ID.
 
 Query:
 { 
-    'a:'register',
-    'name': _console name as string_ 
+    'register': _console name as string_ 
 }
 
 Response:
@@ -16,76 +16,74 @@ Response:
     'id': _numeric id assigned by server_
 }
 
+Status
+------
 
-Server Requests
+Report the console's current status. If a status packet is not recieved within two seconds, the console is determined to have timed out and is dropped (all in-progress games being decided randomly).
+
+Everything is shoehorned into these requests.
+
+Query:
+{
+    'id': _numeric id assigned by server_
+    'avail_slots': _list of available message slots_
+    'game_updates': _updates on currently running game(s)_
+    'avail_games': _suggested games_
+}
+
+Response:
+{
+    'ok': _Boolean, acknowledges server is okay_
+    'game_control': _start or stop running games(s)_
+    'messages': _messages for message slots_
+    'master_state': _global data about larger game_
+}
+
+Message Slots
+-------------
+
+Message slot objects describe an available space on the console for displaying
+a message. It is usually characterized by a width and height.
+{
+    'slotid': _identifier for this slot_
+    'w': _numeric width of available slot in characters_
+    'h': _numeric width of available slot in characters (optional) (defaults to 1)_
+}
+
+Messages
+--------
+
+Messages fill message slots. They can be posted to fill slots that are currently empty, overwrite full slots, or release slots.
+{
+    'slotid': _identifier for this slot, as in message slot object_
+    'text': _text to display in the slot; null to free slot_
+
+Available Games
 ---------------
 
-All server requests include a numeric "qid" field; responses must include this field in their responses. The qid field is not explicitly represented in the protocol below.
-
-Request Game
-------------
-
-Ask a console for a game to play.
-
-Query:
+Available game objects represent potential games this console can play at this time.
 {
-    'a':'request_game',
-    _optional fields_
-    'difficulty': _value from 0.0 (trivial) to 1.0 (insane)_
+    'message': _message to display on other console_
+    'level': _numeric difficulty (optional)_
+    'time': _maximum time to accomplish game (optional)_
+    'gameid': _id of this game_
 }
 
-Response:
-{
-    'ok': _Boolean; true if the console has a valid game to play_
-    'game_id': _numeric or string identifier for this game_
-    'message': _string message for another console to display_
-}
-
-Begin Game
-----------
-
-Start a game that the console had returned as a response to a game request.
-
-Query:
-{
-    'a':'begin_game'
-    'game_id': _numeric or string identifier for this game_
-}
-
-Response:
-{
-    'ok': _Boolean; true if the game has started successfully_
-    'message': _string message for another console to display_
-}
-
-Console Status
---------------
-
-Get the current status of a console.
-
-Query:
-{
-    'a':'status'
-}
-
-Response:
-{
-    'is_playing': _Boolean; true if playing a game_
-    'has_message': _Boolean; true if displaying a message on this console_
-}
-
-Game status
+Game Update
 -----------
-
-Query:
+Game updates are posted whenever a game is in progress, or after it has been won or lost.
 {
-    'a':'game_status'
-    'game_id': _numeric or string identifier for this game_
+    'gameid': _id of this game_
+    'running': _boolean, true if game in progress; if false, result included_
+    'result': _boolean; true if won, false if lost_
+    'score': _numeric, optional; for spectacular win or massive fail_
 }
 
-Response:
+Game Control
+------------
+A game control message is sent to start or cancel a game.
 {
-    'finished': _Boolean; true if game has completed_
-    'outcome': _Boolean; true if succeeded for false if failed_
+    'operation': _string, either 'start' or 'cancel'_
+    'gameid': _id of this game as specified in available game object_
 }
 

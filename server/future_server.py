@@ -9,14 +9,19 @@ class Game:
     def __init__(self):
         self.consoles = {}
         self.game_lock = threading.Lock()
+        self.next_id = 0
     def add_console(self,console):
         self.game_lock.acquire()
+        console.id = self.next_id
+        self.next_id = self.next_id + 1
         self.consoles[console.name] = console
         self.game_lock.release()
+        print "+ Added {0} console, id {1}".format(console.name,console.id)
     def remove_console(self,console):
         self.game_lock.acquire()
         del self.consoles[console.name]
         self.game_lock.release()
+        print "- Removed {0} console, id {1}".format(console.name,console.id)
 
 
 portNum = 8888
@@ -29,15 +34,7 @@ class GameThread(threading.Thread):
             pass
             
 class SpaceteamSocket(websocket.WebSocketHandler):
-    id_lock = threading.Lock()
-    next_id = 0
-
     def open(self):
-        SpaceteamSocket.id_lock.acquire()
-        self.id = SpaceteamSocket.next_id
-        SpaceteamSocket.next_id = SpaceteamSocket.next_id + 1
-        SpaceteamSocket.id_lock.release()
-        print "- New connection, assigned id {0}".format(self.id)
         self.active_games = []
 
     def on_message(self, message):
@@ -45,14 +42,12 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         if command.get('a') == 'register':
             self.name = command.get('name')
             print 'registering',self.name
-            GLOBALS['consoles'][self.id] = self
+            game.add_console(self)
             rsp = { 'ok':True, 'id':self.id }
             self.write_message(json.dumps(rsp))
        
     def on_close(self):
-        print "SPACE socket closed"
-        print GLOBALS['consoles']
-        GLOBALS['sockets'].remove(self)
+        game.remove_console(self)
 
 
 application = tornado.web.Application([

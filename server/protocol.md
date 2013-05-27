@@ -2,7 +2,7 @@
 Registration
 ------------
 
-Initiated by console
+Initiated by console. All other queries are posted by the server.
 
 Query:
 { 
@@ -16,19 +16,16 @@ Response:
     'id': _numeric id assigned by server_
 }
 
-Get Status
-----------
 
-Query:
-{
-    'a':'status'
-}
+Server Requests
+---------------
 
+All server requests include a numeric "qid" field; responses must include this field in their responses. The qid field is not explicitly represented in the protocol below.
 
 Request Game
 ------------
 
-Initiated by server. Ask a console for a game to play.
+Ask a console for a game to play.
 
 Query:
 {
@@ -47,7 +44,7 @@ Response:
 Begin Game
 ----------
 
-Initiated by the server. Start a game that the console had returned as a response to a game request.
+Start a game that the console had returned as a response to a game request.
 
 Query:
 {
@@ -61,10 +58,24 @@ Response:
     'message': _string message for another console to display_
 }
 
-Game Status
------------
+Console Status
+--------------
 
-Get the current status of a game.
+Get the current status of a console.
+
+Query:
+{
+    'a':'status'
+}
+
+Response:
+{
+    'is_playing': _Boolean; true if playing a game_
+    'has_message': _Boolean; true if displaying a message on this console_
+}
+
+Game status
+-----------
 
 Query:
 {

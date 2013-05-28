@@ -27,6 +27,7 @@ Query:
     'avail_slots': _list of available message slots_
     'game_updates': _updates on currently running game(s)_
     'avail_games': _suggested games_
+    'bored': _boolean; true if the user is waiting for a new game_
 }
 
 Response:

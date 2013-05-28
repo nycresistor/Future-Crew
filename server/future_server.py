@@ -3,6 +3,7 @@ import tornado.web
 from tornado import websocket
 import json
 import time
+import random
 
 portNum = 8888
 
@@ -49,19 +50,24 @@ class Console:
         print "+ Added {0} console".format(self.name)
         self.avail_slots = []
         self.avail_games = []
-        self.playing = set()
-        self.showing = set()
+        self.queued_message = None
+        self.bored = False
     def resolve_message(self,game,won,score):
-        self.showing.remove(game)
+        pass
     def resolve_game(self,game,won,score):
-        self.playing.remove(game)
+        pass
     def remove(self):
         Console.consoles.remove(self)
         print "- Removed {0} console".format(self.name)
+    def wants_game(self):
+        return self.bored and len(self.avail_games) > 0
+    def has_slot(self):
+        return self.queued_message == None and len(self.avail_slots) > 0
     def handle_msg(self,msg):
         self.timestamp = time.time()
         self.avail_slots = msg.get('avail_slots',[])
         self.avail_games = msg.get('avail_games',[])
+        self.bored = msg.get('bored',False)
         for update in msg.get('game_updates',[]):
             Game.dispatch_update(update)
 
@@ -78,9 +84,33 @@ class SpaceteamSocket(websocket.WebSocketHandler):
             self.write_message(json.dumps(rsp))
         else:
             self.console.handle_msg(command)
+            control = []
+            if self.console.wants_game():
+                player = self.console
+                # find message slot clients
+                slotavail = [x for x in Console.consoles if x.has_slot()]
+                if not slotavail:
+                    print("... Not enough message slots for bored client")
+                else:
+                    game = random.choice(player.avail_games)
+                    messenger = random.choice(slotavail)
+                    slot = random.choice(messenger.avail_slots)
+                    messenger.queued_message = {
+                        'slotid':slot['id'],
+                        'text':game['message']
+                        }
+                    print("starting {0}.{1} on {2}.{3}".format(player.name,game['gameid'],messenger.name,slot['id']))
+                    control.append({
+                        'operation':'start',
+                        'gameid':game['gameid']
+                        })
+            messages = []
+            if self.console.queued_message:
+                messages.append(self.console.queued_message)
+                self.console.queued_message = None
             rsp = { 'ok':True,
-                    'game_control':[],
-                    'messages':[],
+                    'game_control':control,
+                    'messages':messages,
                     'master_state':{}
                     }
             self.write_message(json.dumps(rsp))
@@ -107,7 +137,6 @@ def heartbeat():
             print("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
-
 
 if __name__ == "__main__":
     application.listen(portNum)

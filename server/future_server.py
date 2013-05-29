@@ -17,17 +17,14 @@ class Game:
     def __init__(self,message_console,slot_id,play_console,msg):
         self.message_console = message_console
         self.play_console = play_console
-        self.msg = gamemsg
+        self.msg = msg
         self.slot_id = slot_id
-        self.id = (play_console,gamemsg['gameid'])
+        self.id = (play_console,msg['gameid'])
         Game.games[self.id] = self
 
     def start(self):
         self.message_console.send_message(self.msg['message'],self.slot_id)
         self.play_console.send_control(self.msg,'start')
-
-    def dispatch_game_update(console,msg):
-        Game.games[(console,msg['gameid'])].handle_game_update(update)
 
     def resolve(self,won,score):
         if won:
@@ -95,25 +92,25 @@ class Console:
 class SpaceteamSocket(websocket.WebSocketHandler):
     def open(self):
         self.console = None
-        cmdmap = {
+        self.cmdmap = {
             'register': self.on_register,
             'status': self.on_status,
             'update': self.on_update
             }
 
     def on_register(self, message):
-        name = command['name']
+        name = message['name']
         self.console = Console(name, self)
 
     def on_message(self, message):
         command = json.loads(message)
-        cmdmap[message['a']](command)
+        self.cmdmap[command['a']](command)
 
     def on_status(self, message):
         self.console.handle_status(message)
 
-    def on_update(self, message):
-        Game.dispatch_game_update(self.console,message)
+    def on_update(self, msg):
+        Game.games[(self.console,msg['gameid'])].handle_game_update(update)
             
     def on_close(self):
         if self.console:
@@ -139,17 +136,9 @@ def makeNewGame():
         else:
             game = random.choice(player.avail_games)
             messenger = random.choice(slotavail)
-            slotid = random.choice(messenger.avail_slots['id'])
-
-            if self.console.queued_message:
-                messages.append(self.console.queued_message)
-                self.console.queued_message = None
-            rsp = { 'ok':True,
-                    'game_control':control,
-                    'messages':messages,
-                    'master_state':{}
-                    }
-            selfy.write_message(json.dumps(rsp))
+            slotid = random.choice(messenger.avail_slots)['id']
+            g = Game(messenger,slotid,player,game)
+            g.start()
 
 
 def heartbeat():

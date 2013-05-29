@@ -8,11 +8,11 @@ if __name__ == '__main__':
         ClientGame('test2','MUST PRESS BUTTON NOW',time=3.2)
         ]
     fc.message_slots = [
-        MessageSlot(1,10,5)
+        MessageSlot(1,50)
         ]
     print "Start pings..."
     for i in range(100):
-        fc.update()
+        fc.status()
         time.sleep(0.2)
 
     print "Stop pings..."

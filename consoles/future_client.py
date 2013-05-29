@@ -6,17 +6,15 @@ class RegistrationError(Exception):
     pass
 
 class MessageSlot:
-    def __init__(self,id,x,y):
+    def __init__(self,id,l):
         self.id = id
-        self.x = x
-        self.y = y
+        self.length = l
     def on_message(self,text):
         print "MESSAGE: ",text
     def jsonable(self):
         return {
             'id':self.id,
-            'x':self.x,
-            'y':self.y
+            'len':self.length
             }
 
 class ClientGame:
@@ -57,11 +55,8 @@ class FutureClient:
         self.name = name
         self.socket = create_connection(urlstring)
         self.running_games = []
-        msg = {'register':self.name}
+        msg = {'a':'register','name':self.name}
         self.socket.send(json.dumps(msg))
-        rsp = json.loads(self.socket.recv())
-        if rsp.get('ok',False) != True:
-            raise RegistrationError("Bad registration response "+json.dumps(rsp))
         self.message_slots = []
         self.available_games = []
     def on_game_start(self,game):
@@ -70,31 +65,14 @@ class FutureClient:
     def on_game_end(self,game,won,score):
         print("Game {0} ended, {1}, {2}".format(game.id,won,score))
         pass
-    def update(self):
+    def status(self):
         msg = {
+            'a':'status',
             'avail_slots':[x.jsonable() for x in self.message_slots],
             'avail_games':[x.jsonable() for x in self.available_games],
-            'game_updates':[],
             'bored':len(self.running_games) == 0
             }
         self.socket.send(json.dumps(msg))
-        rsp = json.loads(self.socket.recv())
-        for message in rsp['messages']:
-            slot = next(x for x in self.message_slots if x.id == message['slotid'])
-            slot.on_message(message['text'])
-        for control in rsp['game_control']:
-            op = control['operation']
-            id = control['gameid']
-            if op == 'start':
-                try:
-                    game = next(x for x in self.available_games if x.id == id)
-                    print "Game found:",game
-                    self.available_games.remove(game)
-                    self.running_games.append(game)
-                    self.on_game_start(game)
-                except StopIteration:
-                    # could not find game
-                    pass
 
     def quit(self):
         self.socket.close()

@@ -23,6 +23,7 @@ class Game:
         Game.games[self.id] = self
 
     def start(self):
+        print "starting on",self.play_console.name,", message",self.message_console.name,"slot",self.slot_id
         self.message_console.send_message(self.msg['message'],self.slot_id)
         self.play_console.send_control(self.msg,'start')
 
@@ -42,6 +43,7 @@ class Game:
             won = update['result']
             score = update.get('score',0)
             self.resolve(won,score)
+            self.message_console.send_message(None,self.slot_id)
             del Game.games[(self.play_console,update['gameid'])]
 
 class Console:
@@ -49,13 +51,14 @@ class Console:
     def __init__(self,name,socket):
         self.name = name
         self.socket = socket
-        self.timestamp = time.clock()
+        self.timestamp = time.time()
         Console.consoles.add(self)
         print "+ Added {0} console".format(self.name)
         self.avail_slots = []
         self.avail_games = []
         self.queued_message = None
         self.bored = False
+        self.last_game_start = time.time()
 
     def send_message(self,message,slot):
         m_msg = {
@@ -88,6 +91,25 @@ class Console:
         self.avail_slots = msg.get('avail_slots',[])
         self.avail_games = msg.get('avail_games',[])
         self.bored = msg.get('bored',False)
+        if self.wants_game():
+            self.makeNewGame()
+
+    def makeNewGame(self):
+        # minimum interval between games: 2 seconds
+        if (time.time() - self.last_game_start) < 2.0:
+            return False
+        slotavail = [x for x in Console.consoles if x.has_slot()]
+        if not slotavail:
+            print("... Not enough message slots for bored client")
+        else:
+            self.last_game_start = time.time()
+            game = random.choice(self.avail_games)
+            messenger = random.choice(slotavail)
+            slotid = random.choice(messenger.avail_slots)['id']
+            g = Game(messenger,slotid,self,game)
+            g.start()
+            return True
+        return False
 
 class SpaceteamSocket(websocket.WebSocketHandler):
     def open(self):
@@ -126,21 +148,6 @@ application = tornado.web.Application([
 
 TIMEOUT = 2.0
 
-def makeNewGame():
-    bored = [x for x in Console.consoles if x.wants_game()]
-    if bored:
-        player = random.choice(bored)
-        slotavail = [x for x in Console.consoles if x.has_slot()]
-        if not slotavail:
-            print("... Not enough message slots for bored client")
-        else:
-            game = random.choice(player.avail_games)
-            messenger = random.choice(slotavail)
-            slotid = random.choice(messenger.avail_slots)['id']
-            g = Game(messenger,slotid,player,game)
-            g.start()
-
-
 def heartbeat():
     # check for client timeouts
     timestamp = time.time()
@@ -149,7 +156,6 @@ def heartbeat():
             print("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
-    makeNewGame()
 
 if __name__ == "__main__":
     application.listen(portNum)

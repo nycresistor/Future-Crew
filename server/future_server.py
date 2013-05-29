@@ -11,34 +11,41 @@ class Game:
     '''A 'game' is a message displayed on one console, and a set
     of actions performed on a (usually different) console to 'win' the
     game. Games can time out or be cancelled.'''
+    # maintain map of running games
     games = {}
 
-    def __init__(self,gameid,message_console,play_console,descr):
+    def __init__(self,message_console,slot_id,play_console,msg):
         self.message_console = message_console
         self.play_console = play_console
-        self.descr = descr
-        Game.games[gameid] = self
+        self.msg = gamemsg
+        self.slot_id = slot_id
+        self.id = (play_console,gamemsg['gameid'])
+        Game.games[self.id] = self
 
-    def dispatch_update(update):
-        Game.games[update.gameid].handle_game_update(update)
+    def start(self):
+        self.message_console.send_message(self.msg['message'],self.slot_id)
+        self.play_console.send_control(self.msg,'start')
+
+    def dispatch_game_update(console,msg):
+        Game.games[(console,msg['gameid'])].handle_game_update(update)
 
     def resolve(self,won,score):
         if won:
             print "BIG WINNER +{0} POINTS".format(score)
         else:
             print "small loser {0} points".format(score)
-        message_console.resolve_message(self,won,score)
-        play_console.resolve_game(self,won,score)
+        message_console.send_message(None,self.slot_id)
         del games[self.gameid]
     
     def handle_game_update(self,update):
-        if update.running:
+        if update['running']:
             # all is well, just status
             return
         else:
             won = update['result']
             score = update.get('score',0)
             self.resolve(won,score)
+            del Game.games[(self.play_console,update['gameid'])]
 
 class Console:
     consoles = set()
@@ -52,68 +59,61 @@ class Console:
         self.avail_games = []
         self.queued_message = None
         self.bored = False
-    def resolve_message(self,game,won,score):
-        pass
-    def resolve_game(self,game,won,score):
-        pass
+
+    def send_message(self,message,slot):
+        m_msg = {
+            'a' : 'message',
+            'text' : message,
+            'slotid' : slot
+            }
+        self.socket.write_message(json.dumps(m_msg))
+
+    def send_control(self,game,operation):
+        p_msg = {
+            'a' : 'control',
+            'game' : game,
+            'operation' : operation
+            }
+        self.socket.write_message(json.dumps(p_msg))
+
     def remove(self):
         Console.consoles.remove(self)
         print "- Removed {0} console".format(self.name)
+
     def wants_game(self):
         return self.bored and len(self.avail_games) > 0
+
     def has_slot(self):
         return self.queued_message == None and len(self.avail_slots) > 0
-    def handle_msg(self,msg):
+
+    def handle_status(self,msg):
         self.timestamp = time.time()
         self.avail_slots = msg.get('avail_slots',[])
         self.avail_games = msg.get('avail_games',[])
         self.bored = msg.get('bored',False)
-        for update in msg.get('game_updates',[]):
-            Game.dispatch_update(update)
 
 class SpaceteamSocket(websocket.WebSocketHandler):
     def open(self):
         self.console = None
+        cmdmap = {
+            'register': self.on_register,
+            'status': self.on_status,
+            'update': self.on_update
+            }
+
+    def on_register(self, message):
+        name = command['name']
+        self.console = Console(name, self)
 
     def on_message(self, message):
         command = json.loads(message)
-        if command.has_key('register'):
-            name = command['register']
-            self.console = Console(name, self)
-            rsp = { 'ok':True }
-            self.write_message(json.dumps(rsp))
-        else:
-            self.console.handle_msg(command)
-            control = []
-            if self.console.wants_game():
-                player = self.console
-                # find message slot clients
-                slotavail = [x for x in Console.consoles if x.has_slot()]
-                if not slotavail:
-                    print("... Not enough message slots for bored client")
-                else:
-                    game = random.choice(player.avail_games)
-                    messenger = random.choice(slotavail)
-                    slot = random.choice(messenger.avail_slots)
-                    messenger.queued_message = {
-                        'slotid':slot['id'],
-                        'text':game['message']
-                        }
-                    print("starting {0}.{1} on {2}.{3}".format(player.name,game['gameid'],messenger.name,slot['id']))
-                    control.append({
-                        'operation':'start',
-                        'gameid':game['gameid']
-                        })
-            messages = []
-            if self.console.queued_message:
-                messages.append(self.console.queued_message)
-                self.console.queued_message = None
-            rsp = { 'ok':True,
-                    'game_control':control,
-                    'messages':messages,
-                    'master_state':{}
-                    }
-            self.write_message(json.dumps(rsp))
+        cmdmap[message['a']](command)
+
+    def on_status(self, message):
+        self.console.handle_status(message)
+
+    def on_update(self, message):
+        Game.dispatch_game_update(self.console,message)
             
     def on_close(self):
         if self.console:
@@ -129,6 +129,29 @@ application = tornado.web.Application([
 
 TIMEOUT = 2.0
 
+def makeNewGame():
+    bored = [x for x in Console.consoles if x.wants_game()]
+    if bored:
+        player = random.choice(bored)
+        slotavail = [x for x in Console.consoles if x.has_slot()]
+        if not slotavail:
+            print("... Not enough message slots for bored client")
+        else:
+            game = random.choice(player.avail_games)
+            messenger = random.choice(slotavail)
+            slotid = random.choice(messenger.avail_slots['id'])
+
+            if self.console.queued_message:
+                messages.append(self.console.queued_message)
+                self.console.queued_message = None
+            rsp = { 'ok':True,
+                    'game_control':control,
+                    'messages':messages,
+                    'master_state':{}
+                    }
+            selfy.write_message(json.dumps(rsp))
+
+
 def heartbeat():
     # check for client timeouts
     timestamp = time.time()
@@ -137,6 +160,7 @@ def heartbeat():
             print("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
+    makeNewGame()
 
 if __name__ == "__main__":
     application.listen(portNum)

@@ -1,61 +1,37 @@
-BIG FAT REFACTOR: Tornado isn't really set up for the kind of messaging I was trying to do, so instead we're doing things in a more traditional webby kind of way (consoles initiate all transactions).
+Big fat refactor two: messages no longer bother with responses. It's all very UDP.
 
 Registration
-------------
+============
 
-Must be the first transaction.
+Console to server. Must be the first transaction.
 
-Query:
 { 
-    'register': _console name as string_ 
-}
-
-Response:
-{
-    'ok': _Boolean_,
+    'a' : 'register'
+    'name' : _console name as string_ 
 }
 
 Status
-------
+======
 
-Report the console's current status. If a status packet is not recieved within two seconds, the console is determined to have timed out and is dropped (all in-progress games being decided randomly).
-
-Everything is shoehorned into these requests.
+Console to server. Report the console's current status. If a status packet is not recieved within two seconds, the console is determined to have timed out and is dropped (all in-progress games being decided randomly).
 
 Query:
 {
+    'a' : 'status'
     'avail_slots': _list of available message slots_
-    'game_updates': _updates on currently running game(s)_
     'avail_games': _suggested games_
-    'bored': _boolean; true if the user is waiting for a new game_
-}
-
-Response:
-{
-    'ok': _Boolean, acknowledges server is okay_
-    'game_control': _start or stop running games(s)_
-    'messages': _messages for message slots_
-    'master_state': _global data about larger game_
+    'bored': _boolean; true if the console is waiting for a new game_
 }
 
 Message Slots
 -------------
 
 Message slot objects describe an available space on the console for displaying
-a message. It is usually characterized by a width and height.
+a message. It is usually characterized by a length.
 {
     'slotid': _identifier for this slot_
-    'w': _numeric width of available slot in characters_
-    'h': _numeric width of available slot in characters (optional) (defaults to 1)_
+    'len': _numeric width of available slot in characters_
 }
-
-Messages
---------
-
-Messages fill message slots. They can be posted to fill slots that are currently empty, overwrite full slots, or release slots.
-{
-    'slotid': _identifier for this slot, as in message slot object_
-    'text': _text to display in the slot; null to free slot_
 
 Available Games
 ---------------
@@ -68,10 +44,21 @@ Available game objects represent potential games this console can play at this t
     'gameid': _id of this game_
 }
 
-Game Update
------------
-Game updates are posted whenever a game is in progress, or after it has been won or lost.
+Messages
+========
+
+Server to console. Messages fill message slots. They can be posted to fill slots that are currently empty, overwrite full slots, or release slots.
 {
+    'a': 'message'
+    'slotid': _identifier for this slot, as in message slot object_
+    'text': _text to display in the slot; null to free slot_
+
+
+Game Update
+===========
+Console to server. Game updates are posted whenever a game is in progress, or after it has been won or lost.
+{
+    'a': 'update'
     'gameid': _id of this game_
     'running': _boolean, true if game in progress; if false, result included_
     'result': _boolean; true if won, false if lost_
@@ -79,10 +66,11 @@ Game updates are posted whenever a game is in progress, or after it has been won
 }
 
 Game Control
-------------
-A game control message is sent to start or cancel a game.
+============
+Server to console. A game control message is sent to start or cancel a game.
 {
+    'a': 'control'
     'operation': _string, either 'start' or 'cancel'_
-    'gameid': _id of this game as specified in available game object_
+    'game': _entire game object as above_
 }
 

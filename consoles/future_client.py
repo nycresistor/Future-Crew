@@ -13,7 +13,7 @@ def next_id():
     return id
 next_id.nid = 0
 
-class MessageSlot:
+class MessageSlot(object):
     '''A text display for a message from the server. Each must have a console-unique id.'''
     def __init__(self,id=next_id(),length = 40):
         self.id = id
@@ -22,6 +22,7 @@ class MessageSlot:
         self.text = None
     def message(self,text):
         self.in_use = bool(text)
+        print "text is",text,"in use:",self.in_use
         self.text = text
         self.on_message(text)
 
@@ -34,7 +35,7 @@ class MessageSlot:
             'len':self.length
             }
 
-class Game:
+class Game(object):
     def __init__(self, gameid, message, level =-1, time =-1):
         self.id = gameid
         self.running = False
@@ -81,7 +82,7 @@ class Game:
                 }
         self.client.socket.send(json.dumps(msg))
 
-class FutureClient:
+class FutureClient(object):
     """A FutureClient is a forward-thinking class ready to take on
     the risks and responsibilities that the future offers. Are you
     ready to extend FutureClient?"""
@@ -105,7 +106,7 @@ class FutureClient:
     def on_message(self, msg):
         slotid = msg['slotid']
         slot = next(s for s in self.message_slots if s.id == slotid)
-        slot.message(msg)
+        slot.message(msg['text'])
 
     def on_control(self, msg):
         gameid = msg['game']['gameid']

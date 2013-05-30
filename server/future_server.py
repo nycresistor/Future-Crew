@@ -32,8 +32,7 @@ class Game:
             print "BIG WINNER +{0} POINTS".format(score)
         else:
             print "small loser {0} points".format(score)
-        message_console.send_message(None,self.slot_id)
-        del games[self.gameid]
+        self.message_console.send_message(None,self.slot_id)
     
     def handle_game_update(self,update):
         if update['running']:
@@ -43,7 +42,6 @@ class Game:
             won = update['result']
             score = update.get('score',0)
             self.resolve(won,score)
-            self.message_console.send_message(None,self.slot_id)
             del Game.games[(self.play_console,update['gameid'])]
 
 class Console:
@@ -132,7 +130,7 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.console.handle_status(message)
 
     def on_update(self, msg):
-        Game.games[(self.console,msg['gameid'])].handle_game_update(update)
+        Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
             
     def on_close(self):
         if self.console:

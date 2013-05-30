@@ -1,9 +1,20 @@
 from future_client import FutureClient, Game, MessageSlot
 import time
+import threading
 
 class PressGame(Game):
     def __init__(self,name,message,button):
+        self.button = button
         super(PressGame, self).__init__(name, message)
+
+    def play_game(self):
+        time.sleep(3);
+        self.finish(True,5);
+
+    def on_start(self):
+        t = threading.Thread(target = self.play_game)
+        t.start()
+
 
 pg1 = PressGame('pg1','PRESS BUTTON A','A')
 pg2 = PressGame('pg2','PRESS BUTTON B','B')

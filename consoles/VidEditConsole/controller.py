@@ -1,12 +1,8 @@
+from future_client import FutureClient, Game, MessageSlot
 import serial
 import serial.tools.list_ports as list_ports
 import time
 import struct
-
-illum_count = 25
-
-
-
 
 illum_count = 25
 
@@ -49,6 +45,51 @@ class Controller:
         self.t.write('l{0}:{1}\n'.format(i,mode))
     def send_msg(self,msg):
         self.t.write('m{0}'.format(msg))
+
+
+
+class PressBlinkersGame(Game):
+    def __init__(self,c):
+        super(PressBlinkersGame, self).__init__('blinkers','Disable blinking buttons')
+        self.condition = threading.Condition()
+        self.c = c
+
+    def make_blinkers(self):
+        count = random.randint(4,10)
+        self.blinkers=set()
+        b = set(range(illum_count))
+        for i in range(count):
+            e = random.choice(b)
+            self.blinkers.add(e)
+            b.remove(e)
+
+    def play_game(self):
+        self.make_blinkers()
+        for i in self.blinkers:
+            c.set_illuminated(i,4)
+        self.condition.acquire()
+        self.condition.wait(5)
+        self.condition.release()
+        if self.running:
+            self.finish(False,-5);
+
+    def on_start(self):
+        t = threading.Thread(target = self.play_game)
+        self.thread = t
+        t.start()
+
+    def on_keypress(self,key):
+        if self.running and key.lower() == self.button.lower():
+            self.finish(True,5)
+            self.condition.acquire()
+            self.condition.notifyAll()
+            self.condition.release()
+
+
+games = [
+    PressGame('pg1','PRESS BUTTON A','A'),
+    PressGame('pg2','PRESS BUTTON B','B')
+]
 
 c = Controller()
 while True:

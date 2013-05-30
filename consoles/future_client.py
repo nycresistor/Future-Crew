@@ -15,14 +15,15 @@ next_id.nid = 0
 
 class MessageSlot(object):
     '''A text display for a message from the server. Each must have a console-unique id.'''
-    def __init__(self,id=next_id(),length = 40):
+    def __init__(self,id=None,length = 40):
+        if id == None:
+            id = next_id()
         self.id = id
         self.length = length
         self.in_use = False
         self.text = None
     def message(self,text):
         self.in_use = bool(text)
-        print "text is",text,"in use:",self.in_use
         self.text = text
         self.on_message(text)
 
@@ -139,6 +140,7 @@ class FutureClient(object):
     def start(self):
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
+        return self.thread
 
     def run(self):
         self.socket.settimeout(0.1)
@@ -154,5 +156,8 @@ class FutureClient(object):
         self.stop()
         if self.thread:
             self.thread.join()
+        # abort all games
+        for game in self.available_games:
+            game.cancel()
         self.socket.close()
 

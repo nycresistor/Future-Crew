@@ -41,7 +41,6 @@ class Controller:
             self.imap[i] = (newp,mode)
         return ipressed
     def set_illuminated(self,i,mode):
-        print "setting",i,"to",mode
         self.t.write('i{0}:{1}\n'.format(i,mode))
         (oldp, _) = self.imap[i]
         self.imap[i] = (oldp, mode)
@@ -70,23 +69,67 @@ class PressBlinkersGame(Game):
 
     def play_game(self):
         self.make_blinkers()
-        for i in rangle(illum_count):
+        for i in range(illum_count):
             if i in self.blinkers:
                 c.set_illuminated(i,4)
             else:
                 c.set_illuminated(i,0)
         starttime = time.time()
-        while (time.time()-starttime) < 10.0:
+        while self.running and (time.time()-starttime) < 10.0:
             time.sleep(0.05)
             for i in c.get_keypresses():
                 if i in self.blinkers:
                     c.set_illuminated(i,0)
                     self.blinkers.remove(i)
-                    print("remaining",len(self.blinkers),self.blinkers)
             if len(self.blinkers) == 0:
-                print "win"
                 self.finish(True,5)
-                break
+                return
+        if self.running:
+            self.finish(False,-5);
+
+    def on_start(self):
+        t = threading.Thread(target = self.play_game)
+        self.thread = t
+        t.start()
+
+class SyncBlinkersGame(Game):
+    def __init__(self,c):
+        super(SyncBlinkersGame, self).__init__('synchronize','Synchronize blinking buttons')
+        self.c = c
+        self.candidates = set(range(illum_count))
+        self.candidates.remove(11) # #11 doesn't illuminate :(
+
+    def make_blinkers(self):
+        count = random.randint(6,14)
+        part = count/2
+        self.a=set(random.sample(self.candidates,count))
+        self.b=set(random.sample(self.a,part))
+        self.a=self.a.difference(self.b)
+
+    def play_game(self):
+        self.make_blinkers()
+        for i in range(illum_count):
+            if i in self.a:
+                c.set_illuminated(i,2)
+            elif i in self.b:
+                c.set_illuminated(i,3)
+            else:
+                c.set_illuminated(i,0)
+        starttime = time.time()
+        while self.running and (time.time()-starttime) < 15.0:
+            time.sleep(0.05)
+            for i in c.get_keypresses():
+                if i in self.a:
+                    c.set_illuminated(i,3)
+                    self.a.remove(i)
+                    self.b.add(i)
+                elif i in self.b:
+                    c.set_illuminated(i,2)
+                    self.b.remove(i)
+                    self.a.add(i)
+            if (len(self.a) == 0) or (len(self.b) == 0):
+                self.finish(True,5)
+                return
         if self.running:
             self.finish(False,-5);
 
@@ -107,6 +150,7 @@ c = Controller()
 
 games = [
     PressBlinkersGame(c),
+    SyncBlinkersGame(c)
 ]
 
 slots = [
@@ -119,5 +163,8 @@ if __name__ == '__main__':
     fc.message_slots = slots
     fc.start()
     while True:
-        time.sleep(0.05)
-    fc.quit()
+        try:
+            time.sleep(0.05)
+        except:
+            fc.quit()
+            break

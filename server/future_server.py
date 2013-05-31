@@ -23,15 +23,19 @@ class Game:
         Game.games[self.id] = self
 
     def start(self):
-        print "starting on",self.play_console.name,", message",self.message_console.name,"slot",self.slot_id
+        print(": starting game, {0}:{1} --> {2}:{3}".format(
+                self.play_console.name,
+                self.id[1],
+                self.message_console.name,
+                self.slot_id))
         self.message_console.send_message(self.msg['message'],self.slot_id)
         self.play_console.send_control(self.msg,'start')
 
     def resolve(self,won,score):
         if won:
-            print "BIG WINNER +{0} POINTS".format(score)
+            print "+ Game {0} won, {1} points".format(self.id[1],score)
         else:
-            print "small loser {0} points".format(score)
+            print "- Game {0} lost, {1} points".format(self.id[1],score)
         self.message_console.send_message(None,self.slot_id)
     
     def handle_game_update(self,update):
@@ -98,7 +102,8 @@ class Console:
             return False
         slotavail = [x for x in Console.consoles if x.has_slot()]
         if not slotavail:
-            print("... Not enough message slots for bored client")
+            # print("... Not enough message slots for bored client")
+            pass
         else:
             self.last_game_start = time.time()
             game = random.choice(self.avail_games)

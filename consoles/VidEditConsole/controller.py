@@ -7,6 +7,7 @@ import threading
 import random
 
 illum_count = 25
+led_count = 12
 
 class Controller:
     def __init__(self):
@@ -157,7 +158,9 @@ slots = [
     LCDSlot(c),
 ]
 
-if __name__ == '__main__':
+import sys
+
+if __name__ == '__main__' and len(sys.argv) == 1:
     fc = FutureClient('ws://localhost:8888/socket','VidEditConsole')
     fc.available_games = games
     fc.message_slots = slots
@@ -168,3 +171,16 @@ if __name__ == '__main__':
         except:
             fc.quit()
             break
+else:
+    # test mode
+    for i in range(led_count):
+        c.set_led(i,1)
+        time.sleep(0.5)
+        c.set_led(i,0)
+    for i in range(illum_count):
+        c.set_illuminated(i,1)
+        time.sleep(0.5)
+        c.set_illuminated(i,0)
+    while True:
+        for i in c.get_keypresses():
+            print i

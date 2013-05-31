@@ -81,7 +81,7 @@ void setup() {
   digitalWrite(LATCH_PIN,HIGH);
   // initialize SPI:
   SPI.begin(); 
-  SPI.setClockDivider(SPI_CLOCK_DIV16);
+  SPI.setClockDivider(SPI_CLOCK_DIV32);
   Serial.begin(9600);
   Serial1.begin(19200);
   // Init timer3: Fast PWM mode, 10-bit (0111)

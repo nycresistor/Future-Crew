@@ -3,6 +3,8 @@ import serial
 import serial.tools.list_ports as list_ports
 import time
 import struct
+import threading
+import random
 
 illum_count = 25
 
@@ -24,7 +26,8 @@ class Controller:
         time.sleep(0.5)
         self.t.write('m\\x0c\n')
         for i in range(illum_count):
-            self.t.write('i{0}:{1}\n'.format(i,0))
+            self.set_illuminated(i,0)
+        
     def get_keypresses(self):
         ipressed = []
         self.tpp.write('r\n')
@@ -38,38 +41,52 @@ class Controller:
             self.imap[i] = (newp,mode)
         return ipressed
     def set_illuminated(self,i,mode):
+        print "setting",i,"to",mode
         self.t.write('i{0}:{1}\n'.format(i,mode))
         (oldp, _) = self.imap[i]
         self.imap[i] = (oldp, mode)
     def set_led(self,i,mode):
         self.t.write('l{0}:{1}\n'.format(i,mode))
-    def send_msg(self,msg):
-        self.t.write('m{0}'.format(msg))
+    def send_msg(self,msg,clear=True):
+        if msg == None:
+            msg = ''
+        if clear:
+            msg = '\x0c'+msg
+        msg = msg.replace('\n','\\n')
+        self.t.write('m{0}\n'.format(msg))
 
 
 
 class PressBlinkersGame(Game):
     def __init__(self,c):
         super(PressBlinkersGame, self).__init__('blinkers','Disable blinking buttons')
-        self.condition = threading.Condition()
         self.c = c
+        self.candidates = set(range(illum_count))
+        self.candidates.remove(11) # #11 doesn't illuminate :(
 
     def make_blinkers(self):
         count = random.randint(4,10)
-        self.blinkers=set()
-        b = set(range(illum_count))
-        for i in range(count):
-            e = random.choice(b)
-            self.blinkers.add(e)
-            b.remove(e)
+        self.blinkers=set(random.sample(self.candidates,count))
 
     def play_game(self):
         self.make_blinkers()
-        for i in self.blinkers:
-            c.set_illuminated(i,4)
-        self.condition.acquire()
-        self.condition.wait(5)
-        self.condition.release()
+        for i in rangle(illum_count):
+            if i in self.blinkers:
+                c.set_illuminated(i,4)
+            else:
+                c.set_illuminated(i,0)
+        starttime = time.time()
+        while (time.time()-starttime) < 10.0:
+            time.sleep(0.05)
+            for i in c.get_keypresses():
+                if i in self.blinkers:
+                    c.set_illuminated(i,0)
+                    self.blinkers.remove(i)
+                    print("remaining",len(self.blinkers),self.blinkers)
+            if len(self.blinkers) == 0:
+                print "win"
+                self.finish(True,5)
+                break
         if self.running:
             self.finish(False,-5);
 
@@ -78,23 +95,29 @@ class PressBlinkersGame(Game):
         self.thread = t
         t.start()
 
-    def on_keypress(self,key):
-        if self.running and key.lower() == self.button.lower():
-            self.finish(True,5)
-            self.condition.acquire()
-            self.condition.notifyAll()
-            self.condition.release()
+class LCDSlot(MessageSlot):
+    def __init__(self, c, id=None, length=40):
+        self.c = c
+        super(LCDSlot, self).__init__(id,length)
 
-
-games = [
-    PressGame('pg1','PRESS BUTTON A','A'),
-    PressGame('pg2','PRESS BUTTON B','B')
-]
+    def on_message(self,text):
+        self.c.send_msg(text)
 
 c = Controller()
-while True:
-    time.sleep(0.05)
-    for i in c.get_keypresses():
-        # button down press
-        mode = (c.imap[i][1] + 1) % 5
-        c.set_illuminated(i,mode)
+
+games = [
+    PressBlinkersGame(c),
+]
+
+slots = [
+    LCDSlot(c),
+]
+
+if __name__ == '__main__':
+    fc = FutureClient('ws://localhost:8888/socket','VidEditConsole')
+    fc.available_games = games
+    fc.message_slots = slots
+    fc.start()
+    while True:
+        time.sleep(0.05)
+    fc.quit()

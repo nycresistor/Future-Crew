@@ -16,10 +16,9 @@ Here's what you'll need for a node:
 - Python websocket-client package. There are many python websocket 
   packages, so make sure to install the correct one:
   - pip install websocket-client
-- Python serial package (pyserial). Install via apt-get on debian:
-  - apt-get install python-serial
-  or opkg on openembedded:
-  - opkg install python-serial
+- Python serial package (pyserial).
+  - On debian: apt-get install python-serial
+  - On openembedded: opkg install python-serial
 - Local network connection
 
 What the hell is a console

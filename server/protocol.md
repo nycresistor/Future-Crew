@@ -56,10 +56,12 @@ Server to console. Messages fill message slots. They can be posted to fill slots
 
 Game Update
 ===========
-Console to server. Game updates are posted whenever a game is in progress, or after it has been won or lost.
+Console to server. Game updates are posted while a game is in progress, or after it has been won or lost. It can be used to update the message displayed on the remote console as well.
+
 {
     'a': 'update'
     'gameid': _id of this game_
+    'message': _replacement message text (alert! hurry up!)_
     'running': _boolean, true if game in progress; if false, result included_
     'result': _boolean; true if won, false if lost_
     'score': _numeric, optional; for spectacular win or massive fail_

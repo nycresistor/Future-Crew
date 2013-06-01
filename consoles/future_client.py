@@ -70,6 +70,14 @@ class Game(object):
               'time':self.time }
         return d
 
+    def update_message(self, new_msg):
+        msg = { 'a':'update',
+                'gameid': self.id,
+                'running': True,
+                'message': new_msg
+                }
+        self.client.socket.send(json.dumps(msg))
+
     def finish(self, won, score):
         self.running = False
         self.won = won

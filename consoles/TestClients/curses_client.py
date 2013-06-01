@@ -16,7 +16,13 @@ class PressGame(Game):
 
     def play_game(self):
         self.condition.acquire()
-        self.condition.wait(5)
+        self.condition.wait(2)
+        self.condition.release()
+        if not self.running:
+            return
+        self.update_message('PRESS BUTTON '+self.button+' NOW!!!')
+        self.condition.acquire()
+        self.condition.wait(2)
         self.condition.release()
         if self.running:
             self.finish(False,-5);
@@ -35,8 +41,8 @@ class PressGame(Game):
 
 
 games = [
-    PressGame('pg1','PRESS BUTTON A','A'),
-    PressGame('pg2','PRESS BUTTON B','B')
+    PressGame('pg1','Press button A.','A'),
+    PressGame('pg2','Press button B.','B')
 ]
 
 class PressMessageSlot(MessageSlot):

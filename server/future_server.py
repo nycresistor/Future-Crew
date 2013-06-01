@@ -41,6 +41,8 @@ class Game:
     def handle_game_update(self,update):
         if update['running']:
             # all is well, just status
+            if update.has_key('message'):
+                self.message_console.send_message(update['message'],self.slot_id)
             return
         else:
             won = update['result']

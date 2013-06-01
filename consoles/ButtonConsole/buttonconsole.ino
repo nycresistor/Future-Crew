@@ -4,7 +4,8 @@
 *   Author: Guy Dickinson <guy@gdickinson.co.uk> | @gdickinson
 *   
 *   This code is designed to be run as a Teensyduino but could easily be used on an Arduino
-*   which has been wired up correctly.
+*   which has been wired up correctly. LED pins are configured to SINK current.
+*   Button digital inputs require a pullup.
 **/
 
 #define NUM_BUTTONS 10
@@ -20,12 +21,18 @@ void setup() {
     pinMode(button_pins[i], INPUT_PULLUP);
     pinMode(led_pins[i], OUTPUT);
   }
-  
+}
+
+void lightIfPressed() {
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    if (digitalRead(button_pins[i]) == LOW) {
+      digitalWrite(led_pins[i], LOW);
+    } else {
+      digitalWrite(led_pins[i], HIGH);
+    }
+  }
 }
 
 void loop() {
-  // Is there any serial input? If so, get it.
-
-  // Post the current button state to the serial output
-  
+  lightIfPressed();
 }

@@ -22,6 +22,18 @@ Here's what you'll need for a node:
 - Local network connection
 - The files in this repository
 
+Configuring Pi's
+----------------
+For Raspbian wheezy and likely other distributions, you will need to
+setup tornado and other dependencies:
+
+    sudo apt-get update # get a coffee...
+    sudo apt-get upgrade # Fly to Brazil to harvest a coffee crop
+    sudo apt-get install python-pip python2.7-dev
+    sudo apt-get install libevent-dev
+    sudo pip install tornado
+    sudo pip install websocket-client
+
 Console hardware
 ----------------
 

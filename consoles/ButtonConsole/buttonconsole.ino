@@ -7,8 +7,10 @@
 *   which has been wired up correctly. LED pins are configured to SINK current.
 *   Button digital inputs require a pullup.
 **/
-
+#include <string.h>
 #define NUM_BUTTONS 10
+
+char stateBuffer[64] = {};
 
 // Buttons are numbered 0 to 9, from left to right. Each button has an LED and a digital input.
 int button_pins[NUM_BUTTONS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -23,16 +25,25 @@ void setup() {
   }
 }
 
-void lightIfPressed() {
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    if (digitalRead(button_pins[i]) == LOW) {
-      digitalWrite(led_pins[i], LOW);
-    } else {
-      digitalWrite(led_pins[i], HIGH);
-    }
+void lightIfPressed(int buttonIdx, int buttonState) {
+  if (buttonState == LOW) {
+    digitalWrite(led_pins[buttonIdx], LOW);
+  } else {
+    digitalWrite(led_pins[buttonIdx], HIGH);
   }
 }
 
+void buttonLoop() {
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    int state = digitalRead(button_pins[i]);
+    lightIfPressed(i, state);
+  }
+}
+
+void sendButtonState(int idx, int state) {
+  int buffOffset = 0;
+}
+
 void loop() {
-  lightIfPressed();
+  buttonLoop();  
 }

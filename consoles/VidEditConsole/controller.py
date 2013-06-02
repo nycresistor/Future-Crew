@@ -3,7 +3,6 @@ import serial
 import serial.tools.list_ports as list_ports
 import time
 import struct
-import threading
 import random
 
 illum_count = 25
@@ -76,22 +75,17 @@ class PressBlinkersGame(Game):
             else:
                 c.set_illuminated(i,0)
         starttime = time.time()
-        while self.running and (time.time()-starttime) < 10.0:
-            time.sleep(0.05)
+        while self.is_running() and (time.time()-starttime) < 10.0:
+            if not self.wait(0.05):
+                return
             for i in c.get_keypresses():
                 if i in self.blinkers:
                     c.set_illuminated(i,0)
                     self.blinkers.remove(i)
             if len(self.blinkers) == 0:
-                self.finish(True,5)
+                self.finish(5)
                 return
-        if self.running:
-            self.finish(False,-5);
-
-    def on_start(self):
-        t = threading.Thread(target = self.play_game)
-        self.thread = t
-        t.start()
+        self.finish(-5);
 
 class SyncBlinkersGame(Game):
     def __init__(self,c):
@@ -117,8 +111,9 @@ class SyncBlinkersGame(Game):
             else:
                 c.set_illuminated(i,0)
         starttime = time.time()
-        while self.running and (time.time()-starttime) < 15.0:
-            time.sleep(0.05)
+        while self.is_running() and (time.time()-starttime) < 15.0:
+            if not self.wait(0.05):
+                return
             for i in c.get_keypresses():
                 if i in self.a:
                     c.set_illuminated(i,3)
@@ -129,15 +124,9 @@ class SyncBlinkersGame(Game):
                     self.b.remove(i)
                     self.a.add(i)
             if (len(self.a) == 0) or (len(self.b) == 0):
-                self.finish(True,5)
+                self.finish(5)
                 return
-        if self.running:
-            self.finish(False,-5);
-
-    def on_start(self):
-        t = threading.Thread(target = self.play_game)
-        self.thread = t
-        t.start()
+        self.finish(-5);
 
 class LCDSlot(MessageSlot):
     def __init__(self, c, id=None, length=40):

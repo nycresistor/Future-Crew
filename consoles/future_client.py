@@ -37,37 +37,91 @@ class MessageSlot(object):
             }
 
 class Game(object):
-    def __init__(self, gameid, message, level =-1, time =-1):
+    '''
+    A Game object represents a game that is played on the console.
+
+    All you need to do to create a game is subclass Game and implement
+    the play_game method. Games always run in their own threads.
+
+    During the play_game method, you should check the self.running variable.
+    If it has been set to False, it means that the game has been cancelled
+    and the method should exit as quickly as possible.
+    '''
+
+    def __init__(self, gameid, message):
+        '''Create a game object. Games must have unique game ids as well
+        as an initial message string. Games can change the displayed string
+        after they start running.'''
         self.id = gameid
-        self.running = False
+        self.thread = None
+        self.score = None
+        self.start_time = 0
         self.message = message
-        self.time = time
-        self.level = level
+        self.exit_evt = threading.Event()
+        self.exit_evt.set()
 
     def start(self,client):
         self.client = client
         self.start_time = time.time()
-        self.running = True
-        self.on_start()
+        t = threading.Thread(target = self.play_game_wrapper)
+        self.thread = t
+        t.start()
+
+    def play_game_wrapper(self):
+        self.exit_evt.clear()
+        self.score = None
+        self.play_game()
+        self.exit_evt.set()
+        if self.score == None:
+            self.score = 0
+        won = self.score > 0
+        msg = { 'a':'update',
+                'gameid': self.id,
+                'running': False,
+                'result': won,
+                'score': self.score
+                }
+        self.client.socket.send(json.dumps(msg))
+
+    def wait(self,how_long):
+        return not self.exit_evt.wait(how_long)
+
+    def is_running(self):
+        return not self.exit_evt.is_set()
 
     def cancel(self):
-        self.running = False
-        self.on_cancel()
+        self.finish(0)
 
-    def on_start(self):
-        print "Game {0} started!".format(self.id)
+    def finish(self,score):
+        if self.score == None:
+            self.score = score
+        self.exit_evt.set()
 
-    def on_cancel(self):
-        print "Game {0} cancelled!".format(self.id)
+    def play_game(self):
+        '''
+        play_game should check self.is_running() to make sure it exits
+        quickly once the game has been cancelled. Make sure
+        your game eventually ends!
 
-    def is_complete(self):
-        return not self.running
+        If you need to wait for an set amount of time to pass while
+        the game is running, use the self.wait() method instead
+        of time.sleep() or similar functions. self.wait() will immediately
+        return when the game is cancelled. It will also return True if the
+        game is still running, or False if it has been cancelled.
+
+        play_game should call self.finish(score) and return when the game
+        is completed (one way or the other). Calling finish multiple times
+        will result in the first indicated score being used. If finish is
+        not called before the game ends, the score will be assumed to be
+        0 (a loss).
+        '''
+        raise Exception("play_game must be implemented!")
 
     def jsonable(self):
         d = { 'message':self.message,
               'gameid':self.id,
-              'level':self.level,
-              'time':self.time }
+              'level':0,
+              'time':0 }
         return d
 
     def update_message(self, new_msg):
@@ -75,19 +129,6 @@ class Game(object):
                 'gameid': self.id,
                 'running': True,
                 'message': new_msg
-                }
-        self.client.socket.send(json.dumps(msg))
-
-    def finish(self, won, score):
-        self.running = False
-        self.won = won
-        self.score = score
-        # send update to server
-        msg = { 'a':'update',
-                'gameid': self.id,
-                'running': False,
-                'result': won,
-                'score': score
                 }
         self.client.socket.send(json.dumps(msg))
 
@@ -129,7 +170,7 @@ class FutureClient(object):
         msg = {
             'a':'status',
             'avail_slots':[x.jsonable() for x in self.message_slots if not x.in_use],
-            'avail_games':[x.jsonable() for x in self.available_games if not x.running],
+            'avail_games':[x.jsonable() for x in self.available_games if not x.is_running()],
             'bored':len(self.running_games) == 0
             }
         self.socket.send(json.dumps(msg))
@@ -161,11 +202,11 @@ class FutureClient(object):
         self.started = False
 
     def quit(self):
-        self.stop()
-        if self.thread:
-            self.thread.join()
         # abort all games
         for game in self.available_games:
             game.cancel()
+        self.stop()
+        if self.thread:
+            self.thread.join()
         self.socket.close()
 

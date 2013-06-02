@@ -12,32 +12,20 @@ class PressGame(Game):
     def __init__(self,name,message,button):
         self.button = button
         super(PressGame, self).__init__(name, message)
-        self.condition = threading.Condition()
 
     def play_game(self):
-        self.condition.acquire()
-        self.condition.wait(2)
-        self.condition.release()
-        if not self.running:
+        if not self.wait(2):
             return
         self.update_message('PRESS BUTTON '+self.button+' NOW!!!')
-        self.condition.acquire()
-        self.condition.wait(2)
-        self.condition.release()
-        if self.running:
-            self.finish(False,-5);
-
-    def on_start(self):
-        t = threading.Thread(target = self.play_game)
-        self.thread = t
-        t.start()
+        print "updates!"
+        if not self.wait(2):
+            return
+        self.finish(-5)
 
     def on_keypress(self,key):
-        if self.running and key.lower() == self.button.lower():
-            self.finish(True,5)
-            self.condition.acquire()
-            self.condition.notifyAll()
-            self.condition.release()
+        if self.is_running() and key.lower() == self.button.lower():
+            self.finish(5)
+
 
 
 games = [
@@ -65,6 +53,8 @@ if __name__ == '__main__':
     fc.available_games = games
     fc.message_slots = slots
     fc.start()
+
+    stdscr.addstr(0,0,"Client running; type 'q' to quit",curses.A_BOLD)
     while True:
         c = stdscr.getch()
         if c > 0:

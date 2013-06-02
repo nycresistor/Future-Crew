@@ -154,12 +154,11 @@ if __name__ == '__main__' and len(sys.argv) == 1:
     fc.available_games = games
     fc.message_slots = slots
     fc.start()
-    while True:
-        try:
+    try:
+        while True:
             time.sleep(0.05)
-        except:
-            fc.quit()
-            break
+    except:
+        fc.quit()
 else:
     # test mode
     for i in range(led_count):

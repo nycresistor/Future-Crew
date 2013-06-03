@@ -10,6 +10,7 @@ int illum_keys[ILLUM_COUNT] = {
 };
 
 void setup() {
+  Serial.begin(19200);
   for (int i =0; i < ILLUM_COUNT; i++) {
     pinMode(illum_keys[i],INPUT);
   }

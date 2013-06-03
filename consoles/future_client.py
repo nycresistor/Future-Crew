@@ -167,12 +167,15 @@ class FutureClient(object):
             game.cancel()
 
     def status(self):
+        self.running_games = [x.jsonable() for x in self.available_games if x.is_running()]
         msg = {
             'a':'status',
             'avail_slots':[x.jsonable() for x in self.message_slots if not x.in_use],
             'avail_games':[x.jsonable() for x in self.available_games if not x.is_running()],
             'bored':len(self.running_games) == 0
             }
+        if self.max_games <= len(self.running_games):
+            msg['avail_games'] = []
         self.socket.send(json.dumps(msg))
 
     def poll(self,timeout=-1):

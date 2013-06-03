@@ -4,6 +4,7 @@ import serial.tools.list_ports as list_ports
 import time
 import struct
 import random
+import threading
 
 illum_count = 25
 led_count = 12
@@ -20,18 +21,24 @@ class Controller:
             print("Found {0}".format(i))
         self.t=ports['teensy']
         self.tpp=ports['teensypp']
+        self.tlock = threading.RLock()
+        self.tpplock = threading.RLock()
         # imap entries are (pressed, mode)
         self.imap = [(False,0)]*illum_count
+        self.tlock.acquire()
         self.t.write('m\\x0cmBoot sequence\\ncomplete.\n')
         time.sleep(0.5)
         self.t.write('m\\x0c\n')
         for i in range(illum_count):
             self.set_illuminated(i,0)
+        self.tlock.release()
         
     def get_keypresses(self):
         ipressed = []
+        self.tpplock.acquire()
         self.tpp.write('r\n')
         keys = self.tpp.readline().strip()
+        self.tpplock.release()
         for i in range(illum_count):
             newp = keys[i]=='1'
             (oldp,mode) = self.imap[i]
@@ -41,18 +48,24 @@ class Controller:
             self.imap[i] = (newp,mode)
         return ipressed
     def set_illuminated(self,i,mode):
+        self.tlock.acquire()
         self.t.write('i{0}:{1}\n'.format(i,mode))
+        self.tlock.release()
         (oldp, _) = self.imap[i]
         self.imap[i] = (oldp, mode)
     def set_led(self,i,mode):
+        self.tlock.acquire()
         self.t.write('l{0}:{1}\n'.format(i,mode))
+        self.tlock.release()
     def send_msg(self,msg,clear=True):
         if msg == None:
             msg = ''
         if clear:
             msg = '\x0c'+msg
         msg = msg.replace('\n','\\n')
+        self.tlock.acquire()
         self.t.write('m{0}\n'.format(msg))
+        self.tlock.release()
 
 
 

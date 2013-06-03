@@ -1,12 +1,11 @@
 
 
-
 How to create a Future Crew console
 ===================================
 
 System requirements
 -------------------
-Future Crew node need to run on sort of basic computer; if you're implementing your console with Teensies or Arduinos they'll need to connect to a Raspberry Pi or other machine to act as the actual FC node. We have several RPis set aside for Future Crew use.
+A Future Crew node needs to run on sort of basic computer; if you're implementing your console with Teensies or Arduinos they'll need to connect to a Raspberry Pi or other machine to act as the actual FC node. We have several RPis set aside for Future Crew use.
 
 Ask for help setting up a Raspberry Pi image if you need it. While developing your console, you may want to use your laptop or whatever until you're ready to install it on a Pi.
 

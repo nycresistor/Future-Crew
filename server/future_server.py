@@ -164,7 +164,7 @@ def heartbeat():
             console.remove()
 
 if __name__ == "__main__":
-    application.listen(portNum)
+    application.listen(portNum, '0.0.0.0')
     print("FC server starting; listening on port {0}.".format(portNum))
     pc = PeriodicCallback(heartbeat,100,IOLoop.instance())
     pc.start()

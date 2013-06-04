@@ -1,4 +1,3 @@
-
 How to create a Future Crew console
 ===================================
 
@@ -26,6 +25,7 @@ For a console:
 
     sudo apt-get install python-pip python-serial
     sudo pip install websocket-client
+    git clone git://github.com/nycresistor/Future-Crew.git
 
 For a server:
 
@@ -35,6 +35,7 @@ For a server:
     sudo apt-get install libevent-dev
     sudo pip install tornado
     sudo pip install websocket-client
+    git clone git://github.com/nycresistor/Future-Crew.git
 
 Console hardware
 ----------------

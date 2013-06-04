@@ -49,7 +49,7 @@ class PressMessageSlot(MessageSlot):
 slots = [ PressMessageSlot(1,50,10,2) ]
 
 if __name__ == '__main__':
-    fc = FutureClient('ws://localhost:8888/socket','basic test client')
+    fc = FutureClient(name='basic test client')
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

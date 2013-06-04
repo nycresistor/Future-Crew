@@ -163,7 +163,7 @@ slots = [
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
-    fc = FutureClient('ws://localhost:8888/socket','VidEditConsole')
+    fc = FutureClient(name='VidEditConsole')
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

@@ -4,8 +4,9 @@ from tornado import websocket
 import json
 import time
 import random
+from os import getenv
 
-portNum = 8888
+portNum = getenv('SERVER_PORT',2600)
 
 class Game:
     '''A 'game' is a message displayed on one console, and a set

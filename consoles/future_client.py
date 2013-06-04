@@ -2,6 +2,7 @@ from websocket import create_connection, socket
 import json
 import time
 import threading
+from os import getenv
 
 class RegistrationError(Exception):
     pass
@@ -137,7 +138,9 @@ class FutureClient(object):
     the risks and responsibilities that the future offers. Are you
     ready to extend FutureClient?"""
     
-    def __init__(self,urlstring = "ws://localhost:8888/socket",name='Generic Client',max_games=1):
+    def __init__(self,urlstring = None,name='Generic Client',max_games=1):
+        if not urlstring:
+            urlstring = getenv('SERVER_URL',"ws://localhost:2600/socket")
         self.name = name
         self.socket = create_connection(urlstring)
         self.running_games = set()

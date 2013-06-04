@@ -49,27 +49,29 @@ class PressMessageSlot(MessageSlot):
 slots = [ PressMessageSlot(1,50,10,2) ]
 
 if __name__ == '__main__':
-    fc = FutureClient(name='basic test client')
-    fc.available_games = games
-    fc.message_slots = slots
-    fc.start()
+    try:
+        fc = FutureClient(name='basic test client')
+        fc.available_games = games
+        fc.message_slots = slots
+        fc.start()
 
-    stdscr.addstr(0,0,"Client running; type 'q' to quit",curses.A_BOLD)
-    while True:
-        c = stdscr.getch()
-        if c > 0:
-            c = chr(c)
-            stdscr.addstr(5,0,"last keypress: "+c)
-            if c == 'q' or c == 'Q':
-                break
-            else:
-                for game in games:
-                    game.on_keypress(c)
-        time.sleep(0.05)
-    fc.quit()
+        stdscr.addstr(0,0,"Client running; type 'q' to quit",curses.A_BOLD)
+        while True:
+            c = stdscr.getch()
+            if c > 0:
+                c = chr(c)
+                stdscr.addstr(5,0,"last keypress: "+c)
+                if c == 'q' or c == 'Q':
+                    break
+                else:
+                    for game in games:
+                        game.on_keypress(c)
+            time.sleep(0.05)
+        fc.quit()
+    finally:
+        curses.nocbreak()
+        curses.echo()
+        curses.endwin()
 
-curses.nocbreak()
-curses.echo()
-curses.endwin()
 
 

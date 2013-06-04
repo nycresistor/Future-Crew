@@ -1,5 +1,4 @@
 
-
 How to create a Future Crew console
 ===================================
 
@@ -23,8 +22,12 @@ Here's what you'll need for a node:
 
 Configuring Pi's
 ----------------
-For Raspbian wheezy and likely other distributions, you will need to
-setup tornado and other dependencies:
+For a console:
+
+    sudo apt-get install python-pip python-serial
+    sudo pip install websocket-client
+
+For a server:
 
     sudo apt-get update # get a coffee...
     sudo apt-get upgrade # Fly to Brazil to harvest a coffee crop

@@ -1,5 +1,3 @@
-
-
 How to create a Future Crew console
 ===================================
 
@@ -23,8 +21,13 @@ Here's what you'll need for a node:
 
 Configuring Pi's
 ----------------
-For Raspbian wheezy and likely other distributions, you will need to
-setup tornado and other dependencies:
+For a console:
+
+    sudo apt-get install python-pip python-serial
+    sudo pip install websocket-client
+    git clone git://github.com/nycresistor/Future-Crew.git
+
+For a server:
 
     sudo apt-get update # get a coffee...
     sudo apt-get upgrade # Fly to Brazil to harvest a coffee crop
@@ -32,6 +35,7 @@ setup tornado and other dependencies:
     sudo apt-get install libevent-dev
     sudo pip install tornado
     sudo pip install websocket-client
+    git clone git://github.com/nycresistor/Future-Crew.git
 
 Console hardware
 ----------------
@@ -60,9 +64,9 @@ A "message slot" is a area of the message component where a text message can be 
 Outline of a console implementation
 -----------------------------------
 
-The "future_client" python package provides the three classes you'll need to use to create a console: FutureClient, Game, and MessageSlot. You'll need to make sure he future_client.py file is in your PYTHON_PATH; you can do this either by copying or linking the file into a directory in your python path (not recommended) or by adding the directory it's in to the PYTHON_PATH variable at runtime. For instance, when I run the curses client from the TestClients directory, I invoke it like this:
+The "future_client" python package provides the three classes you'll need to use to create a console: FutureClient, Game, and MessageSlot. You'll need to make sure he future_client.py file is in your PYTHONPATH; you can do this either by copying or linking the file into a directory in your python path (not recommended) or by adding the directory it's in to the PYTHONPATH variable at runtime. For instance, when I run the curses client from the TestClients directory, I invoke it like this:
 ```bash
-PYTHON_PATH=.. python curses_client.py
+PYTHONPATH=.. python curses_client.py
 ```
 
 You implement the console in python. You'll want to start out by importing the important bits of the interface, like so:

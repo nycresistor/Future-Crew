@@ -30,6 +30,8 @@ class PlayOneNote(Game):
 		starttime = time.time()
 		mistakes = 0
 		
+		self.c.flushMidi() # make sure there's no old notes queued up
+		
 		while self.is_running() and (time.time()-starttime) < self.timeLimit:
 			if not self.wait(0.05):
 				print 'OUT OF TIME' # this doesn't show up on stdout for some reason, despite the flush

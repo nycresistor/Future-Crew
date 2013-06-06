@@ -71,7 +71,10 @@ class Console:
             'text' : message,
             'slotid' : slot
             }
-        self.socket.write_message(json.dumps(m_msg))
+        try:
+            self.socket.write_message(json.dumps(m_msg))
+        except:
+            print "Can't send message; possible that client has dropped!"
 
     def send_control(self,game,operation):
         p_msg = {
@@ -79,7 +82,10 @@ class Console:
             'game' : game,
             'operation' : operation
             }
-        self.socket.write_message(json.dumps(p_msg))
+        try:
+            self.socket.write_message(json.dumps(p_msg))
+        except:
+            print "Can't send control; possible that client has dropped!"
 
     def remove(self):
         Console.consoles.remove(self)
@@ -142,6 +148,7 @@ class SpaceteamSocket(websocket.WebSocketHandler):
             
     def on_close(self):
         if self.console:
+            self.console.socket = None
             try:
                 self.console.remove()
             except KeyError:

@@ -20,7 +20,7 @@ class PlayOneNote(Game):
 	def __init__(self, controller, whichNote):
 		super(PlayOneNote, self).__init__(
 			'PlayOneNote'+str(whichNote), 
-			'Quick! Play a ' + controller.noteName(whichNote) + ' note!')
+			controller.noteName(whichNote) + ' ON PIANO!')
 	
 		self.c = controller
 		self.whichNote = whichNote

@@ -34,13 +34,10 @@ class PlayOneNote(Game):
 		
 		self.c.flushMidi() # make sure there's no old notes queued up
 		
-		while self.is_running() and (time.time()-starttime) < self.timeLimit:
+		while self.is_running():
 			if not self.wait(0.05):
-				print 'OUT OF TIME' # this doesn't show up on stdout for some reason, despite the flush
-				self.c.sound('no')
-				sys.stdout.flush()
-				self.finish(0)
 				return
+				
 			if (self.c.midi.poll()):
 				message = self.c.midi.read(1)
 				if (self.c.matchNotes(self.whichNote, message[0][0][1], 'octave')):
@@ -54,6 +51,12 @@ class PlayOneNote(Game):
 					mistakes += 1
 					self.c.flushMidi()
 					if (mistakes > 3): self.finish(0)
+					
+			if ((time.time()-starttime) > self.timeLimit):
+				print 'OUT OF TIME'
+				self.c.sound('timeout')
+				sys.stdout.flush()
+				self.finish(0)
 
 
 
@@ -68,7 +71,8 @@ class ToyPianoConsole:
 		pygame.mixer.init()
 		self.soundList = [
 			('yes', 'Alert Tone 22.ogg'),
-			('no', 'Exclamation Tone 32.ogg')
+			('no', 'Exclamation Tone 32.ogg'),
+			('timeout', 'Error Tone 37.ogg')
 		]
 		self.sounds = dict((n, pygame.mixer.Sound('sounds/'+f)) for (n,f) in self.soundList)
 		

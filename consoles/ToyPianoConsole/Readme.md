@@ -18,5 +18,7 @@ So far, it can only send keypresses.  It has no lights, meters, etc.
 futurecrew_toypiano is the teensyduino sketch.  It requires the bounce library
 from http://playground.arduino.cc/code/bounce
 
+toypiano.py is the console controller.  Run it with
+`PYTHONPATH=.. python toypiano.pi`
 
-
+feedback sounds in ogg format are in sounds/ folder.  I found some useable placeholder sounds already oggified at http://www.acoustica.com/files/aclooplib/ especially http://www.acoustica.com/files/aclooplib/Sound%20Effects%20Tones/

@@ -59,6 +59,8 @@ class ToyPianoConsole:
 		pygame.init()
 		pygame.midi.init()
 		self.midi = pygame.midi.Input(3, 0)
+		
+		self.whiteKeys = [0,2,4,5,7,9,11]
 		self.noteNames = {
 			'terse': {
 				'sharps': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
@@ -113,7 +115,7 @@ class SimpleMessageSlot(MessageSlot):
 controller = ToyPianoConsole()
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
-fc.available_games = [PlayOneNote(controller, i) for i in range(12)]
+fc.available_games = [PlayOneNote(controller, i) for i in controller.whiteKeys]
 fc.message_slots = [SimpleMessageSlot('PrintSlot')]
 
 fc.start()

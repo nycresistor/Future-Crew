@@ -9,6 +9,8 @@ import sys
 
 import pygame
 import pygame.midi
+import pygame.mixer  # sound output
+
 
 from random import random
 
@@ -35,6 +37,7 @@ class PlayOneNote(Game):
 		while self.is_running() and (time.time()-starttime) < self.timeLimit:
 			if not self.wait(0.05):
 				print 'OUT OF TIME' # this doesn't show up on stdout for some reason, despite the flush
+				self.c.sound('no')
 				sys.stdout.flush()
 				self.finish(0)
 				return
@@ -42,10 +45,12 @@ class PlayOneNote(Game):
 				message = self.c.midi.read(1)
 				if (self.c.matchNotes(self.whichNote, message[0][0][1], 'octave')):
 					print 'YES'
+					self.c.sound('yes')
 					self.c.flushMidi()
 					self.finish(1)
 				else:
 					print 'NO'
+					self.c.sound('no')
 					mistakes += 1
 					self.c.flushMidi()
 					if (mistakes > 3): self.finish(0)
@@ -59,6 +64,13 @@ class ToyPianoConsole:
 		pygame.init()
 		pygame.midi.init()
 		self.midi = pygame.midi.Input(3, 0)
+		
+		pygame.mixer.init()
+		self.soundList = [
+			('yes', 'Alert Tone 22.ogg'),
+			('no', 'Exclamation Tone 32.ogg')
+		]
+		self.sounds = dict((n, pygame.mixer.Sound('sounds/'+f)) for (n,f) in self.soundList)
 		
 		self.whiteKeys = [0,2,4,5,7,9,11]
 		self.noteNames = {
@@ -90,6 +102,10 @@ class ToyPianoConsole:
 		return self.noteNames[v][accidentals][whichNote]
 	
 	
+	# play a sound by key
+	def sound(self, key):
+		if (self.sounds[key]): self.sounds[key].play()
+		
 	
 	# check if note numbers match
 	#	 options: exact, octave (match % 12)

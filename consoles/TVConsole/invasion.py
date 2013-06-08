@@ -12,7 +12,7 @@ from pygame import Surface
 import pygame.image
 
 font.init()
-f = font.SysFont('LCD',120)
+f = font.Font('./LCD.ttf',48)
 
 # Create a shader object, load the shader source, and compile the shader.
 def load_shader(shader_type, shader_source):
@@ -46,16 +46,33 @@ void main()
 """
 
 text_fragment_shader_src="""
-varying lowp vec2 TexCoordOut;
+varying mediump vec2 TexCoordOut;
 uniform sampler2D Texture;
  
 void main(void) {
     gl_FragColor = texture2D(Texture, TexCoordOut); // vec4(0.2,TexCoordOut.x,TexCoordOut.y,1.0) *
-//    gl_FragColor.a = 0.5;
 }
 """
 
 text_bindings = [(0, 'vPosition'), (1, 'TexCoordIn')]
+
+tri_vertex_shader_src = """
+attribute vec4 vPosition;
+void main()
+{
+    gl_Position = vPosition;
+}
+"""
+   
+tri_fragment_shader_src = """
+precision mediump float;
+void main()
+{
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}
+"""
+
+tri_bindings = [(0, 'vPosition')]
 
 # Create the program and shaders.
 def create_program(vertex_src,fragment_src,bindings=[]):
@@ -94,7 +111,6 @@ class TextSlot(MessageSlot):
         super(TextSlot, self).__init__()
 
     def on_message(self,text):
-        print "got message",text
         if text == None:
             text = ''
         self.queue_text = text
@@ -111,28 +127,28 @@ class TextSlot(MessageSlot):
 
     def set_text(self,text):
         img = f.render(text, True, (255,255,255,100))
-        def power_up(x):
-            s = 1
-            while x != 0:
-                s <<= 1
-                x >>= 1
-            return s
-        (self.x, self.y) = img.get_size()
-        sz = tuple(map(power_up,img.get_size()))
-        sz = (max(sz),max(sz))
+        (x, y) = img.get_size()
+        sz = (512,256)
+        print sz
         s = Surface(sz,pygame.SRCALPHA,img)
         s.fill((255,0,0,50))
         s.blit(img,(0,0))
-        print "blitting",text
+        print "blitting",text,"on",self.idx
         glActiveTexture(GL_TEXTURE0+self.idx)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
 
     def draw_text_slot(self):
-        z = -float(self.idx)/10.0
-        vVertices = array('f', [-1.0, -1.0,  z,  0.0, 0.0,
-                                 1.0, -1.0,  z,  1.0, 0.0,
-                                 -1.0,  1.0,  z,  0.0, 1.0,
-                                 1.0,  1.0,  z,  1.0, 1.0])
+        z = 0
+        e = 0.8
+        top = bottom = 0
+        if self.idx == 0:
+            top = e
+        else:
+            bottom = -e
+        vVertices = array('f', [-e, bottom,  z,  0.0, 0.0,
+                                 e, bottom,  z,  1.0, 0.0,
+                                 -e, top,  z,  0.0, 1.0,
+                                 e,  top,  z,  1.0, 1.0])
         vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
         # Load the vertex data.
         glVertexAttribPointer(0, 3, GL_FLOAT, False, 4*5, vVertices)
@@ -149,12 +165,23 @@ class TextSlot(MessageSlot):
 
 slots = []
 
+
+def draw_triangle():
+    vVertices = array('f', [ 0.0,  0.5,  0.0, 
+                             -0.5, -0.5,  0.0,
+                             0.5, -0.5,  0.0])
+    glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
+    glEnableVertexAttribArray(0)
+    glDrawArrays(GL_TRIANGLES, 0, 3)
+
 # Draw a triangle using the shaders.
 def draw(program,w,h):
     # Set the viewport.
     glViewport(0, 0, width, height)
     # Clear the color buffer.
     glClear(GL_COLOR_BUFFER_BIT)
+    glUseProgram(tri_program)
+    draw_triangle()
     # Use the text program object.
     glUseProgram(text_program)
     for slot in slots:
@@ -196,6 +223,10 @@ if __name__ == '__main__':
     text_program = create_program(text_vertex_shader_src,
                                   text_fragment_shader_src,
                                   text_bindings)
+
+    tri_program = create_program(tri_vertex_shader_src,
+                                 tri_fragment_shader_src,
+                                 tri_bindings)
     #f = font.SysFont('ParaAminobenzoic',120)
 
     textures = glGenTextures(2)
@@ -222,8 +253,6 @@ if __name__ == '__main__':
         while len(ready) == 0:
             draw(text_program, width, height)
             eglSwapBuffers(display, surface)
-            if (time.time() - stamp) > 2:
-                stamp = time.time()
             ready, _, _ = select.select([sys.stdin], [], [], 0)
     finally:
         fc.quit()

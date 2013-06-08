@@ -145,14 +145,18 @@ class TextSlot(MessageSlot):
             top = e
         else:
             bottom = -e
-        vVertices = array('f', [-e, bottom,  z,  0.0, 0.0,
-                                 e, bottom,  z,  1.0, 0.0,
-                                 -e, top,  z,  0.0, 1.0,
-                                 e,  top,  z,  1.0, 1.0])
+        vVertices = array('f', [-e, bottom,  z,
+                                 e, bottom,  z,
+                                 -e, top,  z,
+                                 e,  top,  z,])
+        vTex = array('f', [ 0.0, 0.0,
+                            1.0, 0.0,
+                            0.0, 1.0,
+                            1.0, 1.0])
         vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
         # Load the vertex data.
-        glVertexAttribPointer(0, 3, GL_FLOAT, False, 4*5, vVertices)
-        glVertexAttribPointer(1, 2, GL_FLOAT, False, 4*5, vVertices[3:])
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, 0, vTex)
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
 

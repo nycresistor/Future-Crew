@@ -144,7 +144,10 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.console.handle_status(message)
 
     def on_update(self, msg):
-        Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
+        try:
+            Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
+        except KeyError:
+            print "Update message sent for obsolete game {0}".format(msg['gameid'])
             
     def on_close(self):
         if self.console:

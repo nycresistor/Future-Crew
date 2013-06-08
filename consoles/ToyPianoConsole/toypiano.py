@@ -29,7 +29,12 @@ class PlayOneNote(Game):
 		self.timeLimit = 5.0
 		self.warningTime = 2.5
 		
+		self.GPO_BAD = 1
+		self.GPO_GOOD = 3
+		
 		self.c.lcd.backlight(True)
+		self.c.lcd.gpo(self.GPO_BAD,False)
+		self.c.lcd.gpo(self.GPO_GOOD,False)
 		
 
 
@@ -40,6 +45,8 @@ class PlayOneNote(Game):
 		
 		self.c.flushMidi() # make sure there's no old notes queued up
 		self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
+		self.c.lcd.gpo(self.GPO_BAD,False)
+		#self.c.lcd.gpo(self.GPO_GOOD,False) --- DON'T clear the GOOD lamp, let it keep blinking from previous success for a little while
 		#self.c.lcd.brightness(128)
 		
 		while self.is_running():
@@ -53,24 +60,28 @@ class PlayOneNote(Game):
 					self.c.sound('yes')
 					self.c.flushMidi()
 					#self.c.lcd.brightness(255)
+					self.c.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
 					self.finish(1)
 				else:
 					print 'NO'
 					self.c.sound('no')
-					self.c.lcd.blink(0.1, 0.35)
+					#self.c.lcd.blink(0.1, 0.35)
+					self.c.lcd.gpoBlink(1, 0.15, 0.4)
 					mistakes += 1
 					self.c.flushMidi()
 					if (mistakes > 3): self.finish(0)
 					
 			if ((time.time()-starttime) > self.warningTime):
-				self.c.lcd.blink(0.1)
+				#self.c.lcd.blink(0.1)
+				self.c.lcd.gpoBlink(self.GPO_BAD, 0.1)
 					
 			if (not lost and (time.time()-starttime) > self.timeLimit):
 				print 'OUT OF TIME'
 				lost = True
 				self.c.sound('timeout')
 				sys.stdout.flush()
-				self.c.lcd.backlight(False)
+				#self.c.lcd.backlight(False)
+				self.c.lcd.gpo(self.GPO_BAD,False)
 				
 			if ((time.time()-starttime) > self.timeLimit + 0.5):
 				self.finish(0)

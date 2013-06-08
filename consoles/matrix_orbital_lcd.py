@@ -19,10 +19,17 @@ class MatrixOrbitalLCD(object):
 		self.port = serial.Serial(tty, baud)
 		self.t = time.time()
 		self.dt = 0
+		
 		self.blinkDuration = 0     # backlight blink duration in seconds
 		self.blinkTime = 0 # next blink time
 		self.blinkEndTime = 0
 		self.backlightState = True
+		
+		self.NUM_GPO = 3
+		self.gpoBlinkDuration = ['X', 0, 0, 0] # GPO outputs are numbered 1, 2, 3
+		self.gpoBlinkTime = ['X', 0, 0, 0]
+		self.gpoBlinkEndTime = ['X', 0, 0, 0]
+		self.gpoState = ['X', False, False, False]
 		
 		
 	# various config stuff  ----
@@ -57,6 +64,8 @@ class MatrixOrbitalLCD(object):
 	def cls(self):
 		self.port.write(chr(12))
 		
+		
+		
 	# backlight on / off (True / False) also disables blink
 	def backlight(self, flag=True, resetBlink=True):
 		if (resetBlink):
@@ -71,19 +80,9 @@ class MatrixOrbitalLCD(object):
 			self.writeBytes([254,70])
 
 
-	# backlight brightness 0-255
-	def brightness(self, b):
-		self.writeBytes([254,153,b])
-		
-	
-	# write an array or list of bytes
-	def writeBytes(self, bs):
-		for b in bs:
-			self.port.write(chr(b))
 
 
-
-	# blink with on and off time = dur (in seconds) - 0 for no blink (light on)
+	# blink backlight with on and off time = dur (in seconds) - 0 for no blink (light on)
 	#   stop blinking after ... 0 for don't stop
 	def blink(self, dur, stopAfter=0):
 		if (dur==0): 
@@ -99,6 +98,61 @@ class MatrixOrbitalLCD(object):
 
 	
 	
+		# backlight brightness 0-255
+	def brightness(self, b):
+		self.writeBytes([254,153,b])
+		
+		
+	# GPO outputs 1, 2, 3 -----
+	
+	# set gpo startup state
+	def gpoStartup(self, which, flag):
+		self.gpoState[which] = flag
+		if (flag):
+			self.writeBytes([254, 195, which, 1])	
+		else:
+			self.writeBytes([254, 195, which, 0])
+		
+		
+	# set gpo current state
+	def gpo(self, which, flag, resetBlink=True):
+		if (resetBlink):
+			self.gpoBlinkDuration[which] = 0
+			self.gpoBlinkTime[which] = 0
+			self.gpoBlinkEndTime[which] = 0
+			
+		self.gpoState[which] = flag
+		if (flag):
+			self.writeBytes([254,87,which])	
+		else:
+			self.writeBytes([254,86,which])
+			
+			
+	# blink GPO with on and off time = dur (in seconds) - 0 for no blink (light off)
+	#   stop blinking after ... 0 for don't stop
+	def gpoBlink(self, which, dur, stopAfter=0):
+		if (dur==0): 
+			self.gpo(which, False)
+			self.gpoBlinkEndTime[which] = 0
+		elif stopAfter > 0:
+			self.gpoBlinkEndTime[which] = self.t + stopAfter
+		else:
+			self.gpoBlinkEndTime[which] = 0
+		if (dur != self.gpoBlinkDuration[which]):
+			self.gpoBlinkDuration[which] = dur
+			self.gpoBlinkTime[which] = self.t
+			
+			
+			
+		
+	
+	# write an array or list of bytes
+	def writeBytes(self, bs):
+		for b in bs:
+			self.port.write(chr(b))
+
+
+	
 	# call update() frequently if you want to use time-based stuff like blink
 	def update(self):
 		t = time.time()
@@ -112,6 +166,15 @@ class MatrixOrbitalLCD(object):
 		if (self.blinkDuration > 0 and t > self.blinkTime):
 			self.backlight(not self.backlightState, resetBlink=False)
 			self.blinkTime = t + self.blinkDuration
+			
+		for i in range(1,self.NUM_GPO+1):
+			if (self.gpoBlinkDuration[i] > 0 and self.gpoBlinkEndTime[i] > 0 and t > self.gpoBlinkEndTime[i]):
+				self.gpoBlink(i, 0)
+			
+			if (self.gpoBlinkDuration[i] > 0 and t > self.gpoBlinkTime[i]):
+				self.gpo(i, not self.gpoState[i], resetBlink=False)
+				self.gpoBlinkTime[i] = t + self.gpoBlinkDuration[i]
+				
 			
 		
 		

@@ -3,6 +3,7 @@
 # toy piano sends midi notes 48 - 72 (C - C - C)
 
 from future_client import FutureClient, Game, MessageSlot
+from matrix_orbital_lcd import MatrixOrbitalLCD
 
 import time
 import sys
@@ -26,13 +27,20 @@ class PlayOneNote(Game):
 		self.whichNote = whichNote
 	
 		self.timeLimit = 5.0
+		self.warningTime = 2.5
+		
+		self.c.lcd.backlight(True)
+		
 
 
 	def play_game(self):
 		starttime = time.time()
 		mistakes = 0
+		lost = False
 		
 		self.c.flushMidi() # make sure there's no old notes queued up
+		self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
+		#self.c.lcd.brightness(128)
 		
 		while self.is_running():
 			if not self.wait(0.05):
@@ -44,18 +52,27 @@ class PlayOneNote(Game):
 					print 'YES'
 					self.c.sound('yes')
 					self.c.flushMidi()
+					#self.c.lcd.brightness(255)
 					self.finish(1)
 				else:
 					print 'NO'
 					self.c.sound('no')
+					self.c.lcd.blink(0.1, 0.35)
 					mistakes += 1
 					self.c.flushMidi()
 					if (mistakes > 3): self.finish(0)
 					
-			if ((time.time()-starttime) > self.timeLimit):
+			if ((time.time()-starttime) > self.warningTime):
+				self.c.lcd.blink(0.1)
+					
+			if (not lost and (time.time()-starttime) > self.timeLimit):
 				print 'OUT OF TIME'
+				lost = True
 				self.c.sound('timeout')
 				sys.stdout.flush()
+				self.c.lcd.backlight(False)
+				
+			if ((time.time()-starttime) > self.timeLimit + 0.5):
 				self.finish(0)
 
 
@@ -67,6 +84,8 @@ class ToyPianoConsole:
 		pygame.init()
 		pygame.midi.init()
 		self.midi = pygame.midi.Input(3, 0)
+		
+		self.lcd = MatrixOrbitalLCD()
 		
 		pygame.mixer.init()
 		self.soundList = [
@@ -130,17 +149,30 @@ class SimpleMessageSlot(MessageSlot):
 		else:
 			print "Simple Slot",self.slotname,"has been cleared!"
 
+class LCDMessageSlot(MessageSlot):
+	def __init__(self, slotname, lcd):
+		self.slotname = slotname
+		self.lcd = lcd;
+		super(LCDMessageSlot,self).__init__()
+	def on_message(self,text):
+		if text:
+			self.lcd.lcdprintln(text)
+		else:
+			self.lcd.lcdprintln("cleared!")
+
 
 
 controller = ToyPianoConsole()
 
+
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
 fc.available_games = [PlayOneNote(controller, i) for i in controller.whiteKeys]
-fc.message_slots = [SimpleMessageSlot('PrintSlot')]
+fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 
 fc.start()
 try:
 	while 1:
+		controller.lcd.update()
 		time.sleep(0.05)
 except:
 	fc.quit()

@@ -1,5 +1,8 @@
 # class for a Matrix Orbital LCD display on a serial port
 #
+# Manual for Matrix Orbital LCD2041:
+#  http://www.matrixorbital.ca/manuals/LCDVFD_Series/LCD2041/LCD2041.pdf
+#
 #    call update() frequently if you want to use time-based stuff like blink
 
 import serial

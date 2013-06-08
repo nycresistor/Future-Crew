@@ -1,6 +1,6 @@
 # This code is based on a port of the Hello_Triangle example from the
 # OpenGL ES 2.0 Programming Guide.
-
+from future_client import FutureClient, Game, MessageSlot
 
 from array import array
 
@@ -83,13 +83,31 @@ def create_program(vertex_src,fragment_src,bindings=[]):
 
 
 
-class TextSlot:
+class TextSlot(MessageSlot):
     def __init__(self,program,index,texture):
         self.prog = program
         self.idx = index
         self.tex = texture
         self.x = 0
         self.y = 0
+        self.queue_text = ''
+        super(TextSlot, self).__init__()
+
+    def on_message(self,text):
+        print "got message",text
+        if text == None:
+            text = ''
+        self.queue_text = text
+
+    def update(self):
+        if self.queue_text == None:
+            return
+        elif self.queue_text == '':
+            self.set_text('')
+            self.queue_text = None
+        else:
+            self.set_text(self.queue_text)
+            self.queue_text = None
 
     def set_text(self,text):
         img = f.render(text, True, (255,255,255,100))
@@ -105,6 +123,7 @@ class TextSlot:
         s = Surface(sz,pygame.SRCALPHA,img)
         s.fill((255,0,0,50))
         s.blit(img,(0,0))
+        print "blitting",text
         glActiveTexture(GL_TEXTURE0+self.idx)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
 
@@ -139,6 +158,7 @@ def draw(program,w,h):
     # Use the text program object.
     glUseProgram(text_program)
     for slot in slots:
+        slot.update()
         slot.draw_text_slot()
 
 # Create an EGL rendering context and all associated elements.
@@ -192,11 +212,18 @@ if __name__ == '__main__':
     import time
     stamp = time.time()
     ready, _, _ = select.select([sys.stdin], [], [], 0)
-    while len(ready) == 0:
-        draw(text_program, width, height)
-        eglSwapBuffers(display, surface)
-        if (time.time() - stamp) > 2:
-            stamp = time.time()
-            slots[0].set_text(str(time.time()))
-            slots[1].set_text(str(time.asctime()))
-        ready, _, _ = select.select([sys.stdin], [], [], 0)
+
+    fc = FutureClient(name='TV client')
+    fc.available_games = []
+    fc.message_slots = slots
+    fc.start()
+
+    try:
+        while len(ready) == 0:
+            draw(text_program, width, height)
+            eglSwapBuffers(display, surface)
+            if (time.time() - stamp) > 2:
+                stamp = time.time()
+            ready, _, _ = select.select([sys.stdin], [], [], 0)
+    finally:
+        fc.quit()

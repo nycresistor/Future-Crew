@@ -51,7 +51,7 @@ uniform sampler2D Texture;
  
 void main(void) {
     gl_FragColor = texture2D(Texture, TexCoordOut); // vec4(0.2,TexCoordOut.x,TexCoordOut.y,1.0) *
-    gl_FragColor.a = 0.5;
+//    gl_FragColor.a = 0.5;
 }
 """
 
@@ -82,46 +82,53 @@ def create_program(vertex_src,fragment_src,bindings=[]):
     return program
 
 
-def make_text(text):
-    img = f.render(text, True, (255,255,255,100))
-    def power_up(x):
-        s = 1
-        while x != 0:
-            s <<= 1
-            x >>= 1
-        return s
-    sz = tuple(map(power_up,img.get_size()))
-    sz = (max(sz),max(sz))
-    s = Surface(sz,pygame.SRCALPHA,img)
-    s.fill((100,0,0,50))
-    s.blit(img,(0,0))
-    return s
 
-def set_text_slot(text,slot):
-    s = make_text(text)
-    sz = s.get_size()
-    glActiveTexture(GL_TEXTURE0+slot)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
+class TextSlot:
+    def __init__(self,program,index,texture):
+        self.prog = program
+        self.idx = index
+        self.tex = texture
+        self.x = 0
+        self.y = 0
 
-def draw_text_slot(program,slot):
-    z = -float(slot)/10.0
-    vVertices = array('f', [-1.0, -1.0,  z,  0.0, 0.0,
-                             1.0, -1.0,  z,  1.0, 0.0,
-                            -1.0,  1.0,  z,  0.0, 1.0,
-                             1.0,  1.0,  z,  1.0, 1.0])
-    vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
-    # Load the vertex data.
-    glVertexAttribPointer(0, 3, GL_FLOAT, False, 4*5, vVertices)
-    glVertexAttribPointer(1, 2, GL_FLOAT, False, 4*5, vVertices[3:])
-    glEnableVertexAttribArray(0)
-    glEnableVertexAttribArray(1)
+    def set_text(self,text):
+        img = f.render(text, True, (255,255,255,100))
+        def power_up(x):
+            s = 1
+            while x != 0:
+                s <<= 1
+                x >>= 1
+            return s
+        (self.x, self.y) = img.get_size()
+        sz = tuple(map(power_up,img.get_size()))
+        sz = (max(sz),max(sz))
+        s = Surface(sz,pygame.SRCALPHA,img)
+        s.fill((255,0,0,50))
+        s.blit(img,(0,0))
+        glActiveTexture(GL_TEXTURE0+self.idx)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
 
-    glActiveTexture(GL_TEXTURE0+slot)
-    glBindTexture(GL_TEXTURE_2D, textures[slot])
-    l = glGetUniformLocation(program,"Texture")
-    glUniform1i(l, slot);
+    def draw_text_slot(self):
+        z = -float(self.idx)/10.0
+        vVertices = array('f', [-1.0, -1.0,  z,  0.0, 0.0,
+                                 1.0, -1.0,  z,  1.0, 0.0,
+                                 -1.0,  1.0,  z,  0.0, 1.0,
+                                 1.0,  1.0,  z,  1.0, 1.0])
+        vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
+        # Load the vertex data.
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 4*5, vVertices)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, 4*5, vVertices[3:])
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vIndices)
+        glActiveTexture(GL_TEXTURE0+self.idx)
+        glBindTexture(GL_TEXTURE_2D, self.tex)
+        l = glGetUniformLocation(self.prog,"Texture")
+        glUniform1i(l,self.idx);
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vIndices)
+
+slots = []
 
 # Draw a triangle using the shaders.
 def draw(program,w,h):
@@ -131,8 +138,8 @@ def draw(program,w,h):
     glClear(GL_COLOR_BUFFER_BIT)
     # Use the text program object.
     glUseProgram(text_program)
-    draw_text_slot(text_program,0)
-    draw_text_slot(text_program,1)
+    for slot in slots:
+        slot.draw_text_slot()
 
 # Create an EGL rendering context and all associated elements.
 def create_egl_context(native_window, attribs):
@@ -179,8 +186,9 @@ if __name__ == '__main__':
         glBindTexture(GL_TEXTURE_2D, textures[i])
         glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
         glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    set_text_slot('hello hello',1)
-    set_text_slot('robo robo',0)
+        slots.append(TextSlot(text_program,i,textures[i]))
+    slots[0].set_text('hello hello')
+    slots[1].set_text('robo robo')
     import time
     stamp = time.time()
     ready, _, _ = select.select([sys.stdin], [], [], 0)
@@ -189,5 +197,6 @@ if __name__ == '__main__':
         eglSwapBuffers(display, surface)
         if (time.time() - stamp) > 2:
             stamp = time.time()
-            print "update"
+            slots[0].set_text(str(time.time()))
+            slots[1].set_text(str(time.asctime()))
         ready, _, _ = select.select([sys.stdin], [], [], 0)

@@ -51,6 +51,7 @@ uniform sampler2D Texture;
  
 void main(void) {
     gl_FragColor = texture2D(Texture, TexCoordOut); // vec4(0.2,TexCoordOut.x,TexCoordOut.y,1.0) *
+    gl_FragColor.a = 0.5;
 }
 """
 
@@ -96,36 +97,42 @@ def make_text(text):
     s.blit(img,(0,0))
     return s
 
-tex = 0
-# Draw a triangle using the shaders.
-def draw(program, width, height):
-    vVertices = array('f', [-1.0, -1.0,  0.0,  0.0, 0.0,
-                             1.0, -1.0,  0.0,  1.0, 0.0,
-                            -1.0,  1.0,  0.0,  0.0, 1.0,
-                             1.0,  1.0,  0.0,  1.0, 1.0])
+def set_text_slot(text,slot):
+    s = make_text(text)
+    sz = s.get_size()
+    glActiveTexture(GL_TEXTURE0+slot)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
+
+def draw_text_slot(program,slot):
+    z = -float(slot)/10.0
+    vVertices = array('f', [-1.0, -1.0,  z,  0.0, 0.0,
+                             1.0, -1.0,  z,  1.0, 0.0,
+                            -1.0,  1.0,  z,  0.0, 1.0,
+                             1.0,  1.0,  z,  1.0, 1.0])
     vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
-    # Set the viewport.
-    glViewport(0, 0, width, height)
-   
-    # Clear the color buffer.
-    glClear(GL_COLOR_BUFFER_BIT)
-
-    # Use the program object.
-    glUseProgram(program)
-
     # Load the vertex data.
     glVertexAttribPointer(0, 3, GL_FLOAT, False, 4*5, vVertices)
     glVertexAttribPointer(1, 2, GL_FLOAT, False, 4*5, vVertices[3:])
     glEnableVertexAttribArray(0)
     glEnableVertexAttribArray(1)
 
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, tex)
+    glActiveTexture(GL_TEXTURE0+slot)
+    glBindTexture(GL_TEXTURE_2D, textures[slot])
     l = glGetUniformLocation(program,"Texture")
-    glUniform1i(l, 0);
+    glUniform1i(l, slot);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vIndices)
 
+# Draw a triangle using the shaders.
+def draw(program,w,h):
+    # Set the viewport.
+    glViewport(0, 0, width, height)
+    # Clear the color buffer.
+    glClear(GL_COLOR_BUFFER_BIT)
+    # Use the text program object.
+    glUseProgram(text_program)
+    draw_text_slot(text_program,0)
+    draw_text_slot(text_program,1)
 
 # Create an EGL rendering context and all associated elements.
 def create_egl_context(native_window, attribs):
@@ -144,7 +151,7 @@ def create_egl_context(native_window, attribs):
     eglMakeCurrent(display, surface, surface, context)
     return display, surface
 
-
+textures = []
 if __name__ == '__main__':
 
     import select
@@ -164,17 +171,16 @@ if __name__ == '__main__':
                                   text_bindings)
     #f = font.SysFont('ParaAminobenzoic',120)
 
-    [tex] = glGenTextures(1)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    textures = glGenTextures(2)
     glEnable(GL_BLEND);
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, tex)
-    s = make_text('Push button A')
-    sz = s.get_size()
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for i in range(len(textures)):
+        glActiveTexture(GL_TEXTURE0 + i)
+        glBindTexture(GL_TEXTURE_2D, textures[i])
+        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    set_text_slot('hello hello',1)
+    set_text_slot('robo robo',0)
     import time
     stamp = time.time()
     ready, _, _ = select.select([sys.stdin], [], [], 0)

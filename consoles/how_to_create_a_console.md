@@ -23,8 +23,8 @@ Configuring Pi's
 ----------------
 For a console:
 
-    sudo apt-get install python-pip python-serial
-    sudo pip install websocket-client
+    sudo apt-get install python-pip
+    sudo pip install websocket-client pyserial
     git clone git://github.com/nycresistor/Future-Crew.git
 
 For a server:

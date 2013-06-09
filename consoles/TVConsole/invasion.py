@@ -10,6 +10,7 @@ from pogles.gles2 import *
 import pygame.font as font
 from pygame import Surface
 import pygame.image
+import euclid
 
 font.init()
 f = font.Font('./LCD.ttf',48)
@@ -207,6 +208,13 @@ class TextSlot(MessageSlot):
 
 slots = []
 
+def matToList(m):
+	m = m.transposed()
+	return [m.a,m.b,m.c,m.d, m.e,m.f,m.g,m.h,
+		m.i,m.j,m.k,m.l, m.m,m.n,m.o,m.p]
+
+translation = euclid.Vector3()
+
 def draw_triangle():
     vVertices = array('f', [ 0.0,  0.5,  0.0, 
                              -0.5, -0.5,  0.0,
@@ -214,11 +222,9 @@ def draw_triangle():
     glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
     glEnableVertexAttribArray(0)
     l = glGetUniformLocation(tri_program,"mTransform")
-    matrix = [ 1.0, 0.0, 0.0, 0.0,
-	       0.0, 0.5, 0.0, 0.2,
-	       0.0, 0.0, 1.0, 0.0,
-	       0.0, 0.0, 0.0, 1.0 ]
-    glUniformMatrix4fv(l, False, matrix);
+    m = euclid.Matrix4()
+    m.translate(0.5,0.1,0.0)
+    glUniformMatrix4fv(l, False, matToList(m))
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
 # Draw a triangle using the shaders.

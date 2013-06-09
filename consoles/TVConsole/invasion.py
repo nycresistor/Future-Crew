@@ -90,10 +90,12 @@ void main(void) {
 text_bindings = [(0, 'vPosition'), (1, 'TexCoordIn')]
 
 tri_vertex_shader_src = """
+uniform mat4 mTransform;
+uniform mat4 mTransforme;
 attribute vec4 vPosition;
 void main()
 {
-    gl_Position = vPosition;
+    gl_Position = mTransform * vPosition;
 }
 """
    
@@ -205,13 +207,18 @@ class TextSlot(MessageSlot):
 
 slots = []
 
-
 def draw_triangle():
     vVertices = array('f', [ 0.0,  0.5,  0.0, 
                              -0.5, -0.5,  0.0,
                              0.5, -0.5,  0.0])
     glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
     glEnableVertexAttribArray(0)
+    l = glGetUniformLocation(tri_program,"mTransform")
+    matrix = [ 1.0, 0.0, 0.0, 0.0,
+	       0.0, 0.5, 0.0, 0.2,
+	       0.0, 0.0, 1.0, 0.0,
+	       0.0, 0.0, 0.0, 1.0 ]
+    glUniformMatrix4fv(l, False, matrix);
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
 # Draw a triangle using the shaders.

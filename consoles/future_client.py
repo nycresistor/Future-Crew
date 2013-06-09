@@ -142,7 +142,14 @@ class FutureClient(object):
         if not urlstring:
             urlstring = getenv('SERVER_URL',"ws://localhost:2600/socket")
         self.name = name
-        self.socket = create_connection(urlstring)
+        self.socket = None
+        while (self.socket == None):
+            try:
+                self.socket = create_connection(urlstring,5.0)
+            except socket.error:
+                print "Could not connect to server. Trying again."
+                time.sleep(1.5)
+
         self.running_games = set()
         msg = {'a':'register','name':self.name}
         self.socket.send(json.dumps(msg))

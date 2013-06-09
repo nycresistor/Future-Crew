@@ -10,7 +10,7 @@ from pogles.gles2 import *
 import pygame.font as font
 from pygame import Surface
 import pygame.image
-import euclid
+from euclid import Vector3, Matrix4
 from math import pi
 
 font.init()
@@ -93,25 +93,36 @@ void main(void) {
 text_bindings = [(0, 'vPosition'), (1, 'TexCoordIn')]
 
 tri_vertex_shader_src = """
-uniform mat4 mTransform;
-uniform mat4 mPerspective;
-attribute vec4 vPosition;
+uniform mat4 uTransform;
+uniform mat4 uPerspective;
+uniform vec3 uLightDir;
+
+attribute vec4 aPosition;
+attribute vec3 aNormal;
+attribute vec4 aColor;
+
+varying vec4 vColor;
+
 void main()
 {
-    gl_Position = mTransform * vPosition;
-    gl_Position = mPerspective * mTransform * vPosition;
+    vec3 v1 = vec3(uTransform * aPosition);
+    vec3 n1 = vec3(uTransform * vec4(aNormal, 0.0));
+    vColor = aColor * dot(n1,uLightDir);
+    gl_Position = uPerspective * uTransform * aPosition;
 }
 """
    
 tri_fragment_shader_src = """
 precision mediump float;
+
+varying vec4 vColor;
 void main()
 {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    gl_FragColor = vColor;
 }
 """
 
-tri_bindings = [(0, 'vPosition')]
+tri_bindings = [(0,'aPosition'),(1,'aNormal'),(2,'aColor')]
 
 # Create the program and shaders.
 def create_program(vertex_src,fragment_src,bindings=[]):
@@ -167,7 +178,7 @@ class TextSlot(MessageSlot):
     def set_text(self,text):
         sz = (512,256)
         s = Surface(sz,pygame.SRCALPHA)
-        s.fill((255,0,0,50))
+        s.fill((255,0,0,0))
         lines = wrapline(text,512)
         y = 0
         for line in lines:
@@ -195,7 +206,7 @@ class TextSlot(MessageSlot):
                             1.0, 0.0,
                             0.0, 1.0,
                             1.0, 1.0])
-        vIndices = array('H', [ 0, 2, 3, 0, 3, 1 ])
+        vIndices = array('H', [ 3, 2, 0, 1, 3, 0 ])
         # Load the vertex data.
         glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
         glVertexAttribPointer(1, 2, GL_FLOAT, False, 0, vTex)
@@ -216,47 +227,68 @@ def matToList(m):
 	return [m.a,m.b,m.c,m.d, m.e,m.f,m.g,m.h,
 		m.i,m.j,m.k,m.l, m.m,m.n,m.o,m.p]
 
-translation = euclid.Vector3()
+translation = Vector3()
 
 zstamp = time.time()
 
 def draw_invader():
-        ploc = glGetUniformLocation(tri_program,"mPerspective")
-        p = euclid.Matrix4.new_perspective(90.0,4.0/3.0,1.0,10.0)
+        ploc = glGetUniformLocation(tri_program,"uPerspective")
+        p = Matrix4.new_perspective(90.0,4.0/3.0,0.1,10.0)
         glUniformMatrix4fv(ploc, False, matToList(p))
-        for i in [euclid.Matrix4.new_identity(),
-                  euclid.Matrix4.new_rotatex(pi/2),
-                  euclid.Matrix4.new_rotatex(-pi/2),
-                  euclid.Matrix4.new_rotatey(pi/2),
-                  euclid.Matrix4.new_rotatey(-pi/2),
-                  euclid.Matrix4.new_rotatez(pi/2),
-                  euclid.Matrix4.new_rotatex(pi)]:
+        lloc = glGetUniformLocation(tri_program,"uLightDir")
+        glUniform3f(lloc,-1.0,0.4,0.7)
+        for i in [Matrix4.new_identity(),
+                  Matrix4.new_rotatex(pi/2),
+                  Matrix4.new_rotatex(-pi/2),
+                  Matrix4.new_rotatey(pi/2),
+                  Matrix4.new_rotatey(-pi/2),
+                  Matrix4.new_rotatez(pi/2),
+                  Matrix4.new_rotatex(pi)]:
                 draw_invader_element(i)
 
+def add_flat_tri(p, vertices, normals, indices):
+        n = (p[1]-p[0]).cross(p[2]-p[0]).normalize()
+        for i in range(3):
+                vertices += array('f',[p[i].x, p[i].y, p[i].z])
+                normals += array('f',[n.x, n.y, n.z])
+        next = len(indices)
+        indices += array('H',[next, next+1, next+2])
+        
 def draw_invader_element(tmat):
         z = 0.5
         w = 0.5
-        vVertices = array('f', [w, w,  z,
-                                -w, w,  z,
-                                w, -w,  z,
-                                -w, -w,  z,])
-        vIndices = array('H', [0, 1, 3, 0, 3, 2])
-        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
+        vVertices = array('f')
+        vNormals = array('f')
+        vIndices = array('H')
+        c = [ Vector3(w,w,z),
+              Vector3(-w,w,z),
+              Vector3(w,-w,z),
+              Vector3(-w,-w,z) ]
+        add_flat_tri([c[0],c[1],c[3]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[0],c[3],c[2]],vVertices,vNormals,vIndices)
         glEnableVertexAttribArray(0)
-        tloc = glGetUniformLocation(tri_program,"mTransform")
-        m = euclid.Matrix4()
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
+        glVertexAttribPointer(1, 3, GL_FLOAT, False, 0, vNormals)
+        glDisableVertexAttribArray(2)
+        glVertexAttrib4f(2, 1.0, 0.0, 1.0, 1.0)
+        tloc = glGetUniformLocation(tri_program,"uTransform")
+        m = Matrix4()
         zdist = ((time.time()-zstamp)/2.0)%4.0
-        m.translate(0.8,0.5,-5.0+zdist)
+        m.translate(1.0,-0.7,-4.0+zdist)
         m = m*tmat
         glUniformMatrix4fv(tloc, False, matToList(m))
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vIndices)
+        #print len(vVertices),len(vNormals),len(vIndices)
+        glDrawElements(GL_TRIANGLES, len(vIndices), GL_UNSIGNED_SHORT, vIndices)
+        vVertices.append(5)
+        vNormals.append(5)
 
 # Draw a triangle using the shaders.
 def draw(program,w,h):
     # Set the viewport.
     glViewport(0, 0, width, height)
     # Clear the color buffer.
-    glClear(GL_COLOR_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glUseProgram(tri_program)
     draw_invader()
     # Use the text program object.
@@ -308,6 +340,8 @@ if __name__ == '__main__':
 
     textures = glGenTextures(2)
     glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for i in range(len(textures)):
         glActiveTexture(GL_TEXTURE0 + i)

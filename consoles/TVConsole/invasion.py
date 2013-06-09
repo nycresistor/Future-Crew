@@ -16,7 +16,8 @@ font.init()
 f = font.Font('./LCD.ttf',48)
 
 from itertools import chain
- 
+import time
+
 def truncline(text, maxwidth):
         real=len(text)       
         stext=text           
@@ -92,11 +93,12 @@ text_bindings = [(0, 'vPosition'), (1, 'TexCoordIn')]
 
 tri_vertex_shader_src = """
 uniform mat4 mTransform;
-uniform mat4 mTransforme;
+uniform mat4 mPerspective;
 attribute vec4 vPosition;
 void main()
 {
     gl_Position = mTransform * vPosition;
+    gl_Position = mPerspective * mTransform * vPosition;
 }
 """
    
@@ -215,16 +217,23 @@ def matToList(m):
 
 translation = euclid.Vector3()
 
+zstamp = time.time()
+
 def draw_triangle():
     vVertices = array('f', [ 0.0,  0.5,  0.0, 
                              -0.5, -0.5,  0.0,
                              0.5, -0.5,  0.0])
     glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
     glEnableVertexAttribArray(0)
-    l = glGetUniformLocation(tri_program,"mTransform")
+    tloc = glGetUniformLocation(tri_program,"mTransform")
+    ploc = glGetUniformLocation(tri_program,"mPerspective")
     m = euclid.Matrix4()
-    m.translate(0.5,0.1,0.0)
-    glUniformMatrix4fv(l, False, matToList(m))
+    zdist = (time.time()-zstamp)/5.0
+    print zdist
+    m.translate(0.5,0.1,-5.0+zdist)
+    glUniformMatrix4fv(tloc, False, matToList(m))
+    p = euclid.Matrix4.new_perspective(90.0,4.0/3.0,1.0,10.0)
+    glUniformMatrix4fv(ploc, False, matToList(p))
     glDrawArrays(GL_TRIANGLES, 0, 3)
 
 # Draw a triangle using the shaders.
@@ -293,7 +302,6 @@ if __name__ == '__main__':
         slots.append(TextSlot(text_program,i,textures[i]))
     slots[0].set_text('hello hello')
     slots[1].set_text('robo robo')
-    import time
     stamp = time.time()
     ready, _, _ = select.select([sys.stdin], [], [], 0)
 

@@ -52,7 +52,13 @@ Server to console. Messages fill message slots. They can be posted to fill slots
     'a': 'message'
     'slotid': _identifier for this slot, as in message slot object_
     'text': _text to display in the slot; null to free slot_
+    'level': _optional; numeric. 0 for normal message, negative for disposable, 1+ for ALERT_
+}
 
+Glitches
+========
+
+TODO
 
 Game Update
 ===========

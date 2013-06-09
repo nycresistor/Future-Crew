@@ -14,6 +14,39 @@ import pygame.image
 font.init()
 f = font.Font('./LCD.ttf',48)
 
+from itertools import chain
+ 
+def truncline(text, maxwidth):
+        real=len(text)       
+        stext=text           
+        l=f.size(text)[0]
+        cut=0
+        a=0                  
+        done=1
+        old = None
+        while l > maxwidth:
+            a=a+1
+            n=text.rsplit(None, a)[0]
+            if stext == n:
+                cut += 1
+                stext= n[:-cut]
+            else:
+                stext = n
+            l=f.size(stext)[0]
+            real=len(stext)               
+            done=0                        
+        return real, done, stext             
+        
+def wrapline(text, maxwidth): 
+    done=0                      
+    wrapped=[]                  
+                               
+    while not done:             
+        nl, done, stext=truncline(text, maxwidth) 
+        wrapped.append(stext.strip())                  
+        text=text[nl:]                                 
+    return wrapped
+
 # Create a shader object, load the shader source, and compile the shader.
 def load_shader(shader_type, shader_source):
     # Create the shader object.
@@ -126,13 +159,16 @@ class TextSlot(MessageSlot):
             self.queue_text = None
 
     def set_text(self,text):
-        img = f.render(text, True, (255,255,255,100))
-        (x, y) = img.get_size()
         sz = (512,256)
-        print sz
-        s = Surface(sz,pygame.SRCALPHA,img)
+        s = Surface(sz,pygame.SRCALPHA)
         s.fill((255,0,0,50))
-        s.blit(img,(0,0))
+        lines = wrapline(text,512)
+        y = 0
+        for line in lines:
+            img = f.render(line, True, (255,255,255,100))
+            (_, h) = img.get_size()
+            s.blit(img,(0,y))
+            y += h
         print "blitting",text,"on",self.idx
         glActiveTexture(GL_TEXTURE0+self.idx)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sz[0], sz[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(s,"RGBA",1))

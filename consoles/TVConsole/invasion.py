@@ -11,6 +11,7 @@ import pygame.font as font
 from pygame import Surface
 import pygame.image
 import euclid
+from math import pi
 
 font.init()
 f = font.Font('./LCD.ttf',48)
@@ -219,22 +220,36 @@ translation = euclid.Vector3()
 
 zstamp = time.time()
 
-def draw_triangle():
-    vVertices = array('f', [ 0.0,  0.5,  0.0, 
-                             -0.5, -0.5,  0.0,
-                             0.5, -0.5,  0.0])
-    glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
-    glEnableVertexAttribArray(0)
-    tloc = glGetUniformLocation(tri_program,"mTransform")
-    ploc = glGetUniformLocation(tri_program,"mPerspective")
-    m = euclid.Matrix4()
-    zdist = (time.time()-zstamp)/5.0
-    print zdist
-    m.translate(0.5,0.1,-5.0+zdist)
-    glUniformMatrix4fv(tloc, False, matToList(m))
-    p = euclid.Matrix4.new_perspective(90.0,4.0/3.0,1.0,10.0)
-    glUniformMatrix4fv(ploc, False, matToList(p))
-    glDrawArrays(GL_TRIANGLES, 0, 3)
+def draw_invader():
+        ploc = glGetUniformLocation(tri_program,"mPerspective")
+        p = euclid.Matrix4.new_perspective(90.0,4.0/3.0,1.0,10.0)
+        glUniformMatrix4fv(ploc, False, matToList(p))
+        for i in [euclid.Matrix4.new_identity(),
+                  euclid.Matrix4.new_rotatex(pi/2),
+                  euclid.Matrix4.new_rotatex(-pi/2),
+                  euclid.Matrix4.new_rotatey(pi/2),
+                  euclid.Matrix4.new_rotatey(-pi/2),
+                  euclid.Matrix4.new_rotatez(pi/2),
+                  euclid.Matrix4.new_rotatex(pi)]:
+                draw_invader_element(i)
+
+def draw_invader_element(tmat):
+        z = 0.5
+        w = 0.5
+        vVertices = array('f', [w, w,  z,
+                                -w, w,  z,
+                                w, -w,  z,
+                                -w, -w,  z,])
+        vIndices = array('H', [0, 1, 3, 0, 3, 2])
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
+        glEnableVertexAttribArray(0)
+        tloc = glGetUniformLocation(tri_program,"mTransform")
+        m = euclid.Matrix4()
+        zdist = ((time.time()-zstamp)/2.0)%4.0
+        m.translate(0.8,0.5,-5.0+zdist)
+        m = m*tmat
+        glUniformMatrix4fv(tloc, False, matToList(m))
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vIndices)
 
 # Draw a triangle using the shaders.
 def draw(program,w,h):
@@ -243,7 +258,7 @@ def draw(program,w,h):
     # Clear the color buffer.
     glClear(GL_COLOR_BUFFER_BIT)
     glUseProgram(tri_program)
-    draw_triangle()
+    draw_invader()
     # Use the text program object.
     glUseProgram(text_program)
     for slot in slots:

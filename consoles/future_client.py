@@ -182,7 +182,7 @@ class FutureClient(object):
             'a':'status',
             'avail_slots':[x.jsonable() for x in self.message_slots if not x.in_use],
             'avail_games':[x.jsonable() for x in self.available_games if not x.is_running()],
-            'bored':len(self.running_games) == 0
+            'bored':len(self.running_games) < self.max_games
             }
         if self.max_games <= len(self.running_games):
             msg['avail_games'] = []

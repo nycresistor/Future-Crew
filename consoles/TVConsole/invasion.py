@@ -109,9 +109,6 @@ void main()
     vec3 n1 = vec3(uTransform * vec4(aNormal, 0.0));
     vColor = aColor * dot(n1,uLightDir) * length(v1)/10.0;
     gl_Position = uPerspective * uTransform * aPosition;
-    //vColor[0] = gl_Position.z/8.0;
-    //vColor[1] = 0.0;
-    //vColor[2] = 0.0;
     vColor[3] = 1.0;
 }
 """

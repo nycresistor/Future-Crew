@@ -37,6 +37,12 @@ For a server:
     sudo pip install websocket-client
     git clone git://github.com/nycresistor/Future-Crew.git
 
+
+For anything needing OpenGL:
+
+    install pogles. (can't remember the sequence; requires a bit of building)
+    
+
 Console hardware
 ----------------
 

@@ -44,7 +44,7 @@ immediately be cancelled and all slots cleared.
     'a': 'session_update'
     'state': 'starting', 'over', 'reset', or 'update'
     'message': _a message to display to all clients_
-    '
+    'score': _total session score_
 
 
 Status

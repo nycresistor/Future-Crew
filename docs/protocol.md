@@ -1,5 +1,8 @@
 The protocol for future crew is entirely unidirectional.
 
+Notation note: a 'game' is a task carried out on a console. A 'session' is what players think of as a game;
+a few people playing Future Crew together.
+
 Registration
 ============
 
@@ -16,6 +19,33 @@ Unregistration
 ==============
 
 There is no unregistration message; the client merely closes the socket.
+
+Ready to Play
+=============
+
+Console to server. Indicate that there is a player at the
+console ready to play a new session. Should only be sent between
+sessions; when sent during a running session, ignored.
+```
+{
+    'a': 'ready'
+    'is_ready': _true if ready, false if not ready_
+}
+```
+
+Session update
+==============
+
+Server to console. Sent when game is starting, game is over, or potentially for in-game
+events (like "Level 2!!!"). Whenever a session update is received, all in-progress games should
+immediately be cancelled and all slots cleared.
+```
+{
+    'a': 'session_update'
+    'state': 'starting', 'over', 'reset', or 'update'
+    'message': _a message to display to all clients_
+    '
+
 
 Status
 ======

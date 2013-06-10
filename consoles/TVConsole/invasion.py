@@ -250,24 +250,13 @@ translation = Vector3()
 
 zstamp = time.time()
 
-def draw_invader(x,y,z):
-        loc = glGetUniformLocation(tri_program,"uPerspective")
-        p = Matrix4.new_perspective(pi/6,4.0/3.0,0.1,10.0)
-        glUniformMatrix4fv(loc, False, matToList(p))
-        loc = glGetUniformLocation(tri_program,"uLightDir")
-        glUniform3f(loc,-1.0,0.4,0.7)
-        loc = glGetUniformLocation(tri_program,"uFogDensity")
-        glUniform1f(loc,fog_density)
-        loc = glGetUniformLocation(tri_program,"uFogColor")
-        glUniform4f(loc,0.3,0.3,0.35,1.0)
-        for i in [Matrix4.new_identity(),
+invrots = [Matrix4.new_identity(),
                   Matrix4.new_rotatex(pi/2),
                   Matrix4.new_rotatex(-pi/2),
                   Matrix4.new_rotatey(pi/2),
                   Matrix4.new_rotatey(-pi/2),
                   Matrix4.new_rotatez(pi/2),
-                  Matrix4.new_rotatex(pi)]:
-                draw_invader_element(i,x,y,z)
+                  Matrix4.new_rotatex(pi)]
 
 def add_flat_tri(p, vertices, normals, indices):
         n = (p[1]-p[0]).cross(p[2]-p[0]).normalize()
@@ -276,13 +265,8 @@ def add_flat_tri(p, vertices, normals, indices):
                 normals += array('f',[n.x, n.y, n.z])
         next = len(indices)
         indices += array('H',[next, next+1, next+2])
-        
-def draw_invader_element(tmat,ix,iy,iz):
-        # invader params
-        # inv_z - depth of base cube
-        # inv_inset - inset of recess
-        # inv_recess - recess depth
-        # inv_spike - spike length
+
+def create_invader_element():
         vVertices = array('f')
         vNormals = array('f')
         vIndices = array('H')
@@ -299,16 +283,12 @@ def draw_invader_element(tmat,ix,iy,iz):
               Vector3(-r_xy,-r_xy,r_z),
               
               Vector3(0,0,inv_spike)]
-
         add_flat_tri([c[0],c[1],c[4]],vVertices,vNormals,vIndices)
         add_flat_tri([c[1],c[5],c[4]],vVertices,vNormals,vIndices)
-
         add_flat_tri([c[1],c[3],c[5]],vVertices,vNormals,vIndices)
         add_flat_tri([c[3],c[7],c[5]],vVertices,vNormals,vIndices)
-
         add_flat_tri([c[3],c[2],c[7]],vVertices,vNormals,vIndices)
         add_flat_tri([c[2],c[6],c[7]],vVertices,vNormals,vIndices)
-
         add_flat_tri([c[2],c[0],c[6]],vVertices,vNormals,vIndices)
         add_flat_tri([c[0],c[4],c[6]],vVertices,vNormals,vIndices)
 
@@ -316,11 +296,66 @@ def draw_invader_element(tmat,ix,iy,iz):
         add_flat_tri([c[7],c[8],c[5]],vVertices,vNormals,vIndices)
         add_flat_tri([c[6],c[8],c[7]],vVertices,vNormals,vIndices)
         add_flat_tri([c[4],c[8],c[6]],vVertices,vNormals,vIndices)
+	return (vVertices,vNormals,vIndices)
+
+invader_element = create_invader_element()
+
+def create_invader():
+        vvf = array('f')
+        vnf = array('f')
+        vif = array('H')
+	ie = invader_element
+	for i in invrots:
+		(vv,vn,vi) = (array('f',ie[0]),array('f',ie[1]),array('H',ie[2]))
+		while vv:
+			v = Vector3(vv[0],vv[1],vv[2])
+			vp = i.transform(v)
+			vvf += array('f',[vp.x,vp.y,vp.z])
+			vv = vv[3:]
+		while vn:
+			n = Vector3(vn[0],vn[1],vn[2])
+			np = i.transform(n)
+			vnf += array('f',[np.x,np.y,np.z])
+			vn = vn[3:]
+		next = len(vif)
+		for idx in vi:
+			vif.append(idx+next)
+	return (vvf,vnf,vif)
+
+invader = create_invader()
+
+def draw_invader(ix,iy,iz):
+        #for i in invrots:
+        #        draw_invader_element(i,x,y,z)
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, invader[0])
+        glVertexAttribPointer(1, 3, GL_FLOAT, False, 0, invader[1])
+        glDisableVertexAttribArray(2)
+        glVertexAttrib4f(2, 0.7, 0.0, 1.0, 1.0)
+        tloc = glGetUniformLocation(tri_program,"uTransform")
+        m = Matrix4()
+        zdist = ((time.time()-zstamp)/2.0)%4.0
+        m.translate(ix,iy,iz+zdist)
+        m.rotatex((pi/2)*(zdist))
+        m.rotatey((pi/2)*(zdist/2))
+        #m = m*tmat
+        glUniformMatrix4fv(tloc, False, matToList(m))
+        #print len(vVertices),len(vNormals),len(vIndices)
+        glDrawElements(GL_TRIANGLES, len(invader[2]), GL_UNSIGNED_SHORT, invader[2])
+
+	
+def draw_invader_element(tmat,ix,iy,iz):
+        # invader params
+        # inv_z - depth of base cube
+        # inv_inset - inset of recess
+        # inv_recess - recess depth
+        # inv_spike - spike length
 
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
-        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
-        glVertexAttribPointer(1, 3, GL_FLOAT, False, 0, vNormals)
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, invader_element[0])
+        glVertexAttribPointer(1, 3, GL_FLOAT, False, 0, invader_element[1])
         glDisableVertexAttribArray(2)
         glVertexAttrib4f(2, 0.7, 0.0, 1.0, 1.0)
         tloc = glGetUniformLocation(tri_program,"uTransform")
@@ -332,7 +367,7 @@ def draw_invader_element(tmat,ix,iy,iz):
         m = m*tmat
         glUniformMatrix4fv(tloc, False, matToList(m))
         #print len(vVertices),len(vNormals),len(vIndices)
-        glDrawElements(GL_TRIANGLES, len(vIndices), GL_UNSIGNED_SHORT, vIndices)
+        glDrawElements(GL_TRIANGLES, len(invader_element[2]), GL_UNSIGNED_SHORT, invader_element[2])
 
 def draw(program,w,h):
     # Set the viewport.
@@ -340,6 +375,15 @@ def draw(program,w,h):
     # Clear the color buffer.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glUseProgram(tri_program)
+    loc = glGetUniformLocation(tri_program,"uPerspective")
+    p = Matrix4.new_perspective(pi/6,4.0/3.0,0.1,10.0)
+    glUniformMatrix4fv(loc, False, matToList(p))
+    loc = glGetUniformLocation(tri_program,"uLightDir")
+    glUniform3f(loc,-1.0,0.4,0.7)
+    loc = glGetUniformLocation(tri_program,"uFogDensity")
+    glUniform1f(loc,fog_density)
+    loc = glGetUniformLocation(tri_program,"uFogColor")
+    glUniform4f(loc,0.3,0.3,0.35,1.0)
     draw_invader(1.0,-0.7,-4.0)
     draw_invader(0.1,0.2,-8.0)
     draw_invader(0.35,0.7,-9.0)
@@ -379,8 +423,7 @@ if __name__ == '__main__':
             [EGL_RED_SIZE, 5, 
              EGL_GREEN_SIZE, 6, 
              EGL_BLUE_SIZE, 5, 
-             EGL_DEPTH_SIZE, 16,
-             EGL_SAMPLES, 4])
+             EGL_DEPTH_SIZE, 8 ])
 
     width = eglQuerySurface(display, surface, EGL_WIDTH)
     height = eglQuerySurface(display, surface, EGL_HEIGHT)
@@ -397,7 +440,7 @@ if __name__ == '__main__':
     textures = glGenTextures(2)
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-    #glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for i in range(len(textures)):
         glActiveTexture(GL_TEXTURE0 + i)

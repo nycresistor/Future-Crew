@@ -107,7 +107,7 @@ void main()
 {
     vec3 v1 = vec3(uTransform * aPosition);
     vec3 n1 = vec3(uTransform * vec4(aNormal, 0.0));
-    vColor = aColor * dot(n1,uLightDir) * length(v1)/10.0;
+    vColor = aColor * dot(n1,uLightDir);
     gl_Position = uPerspective * uTransform * aPosition;
     vColor[3] = 1.0;
 }
@@ -116,10 +116,15 @@ void main()
 tri_fragment_shader_src = """
 precision mediump float;
 
+uniform float uFogDensity;
+uniform vec4 uFogColor;
 varying vec4 vColor;
 void main()
 {
-    gl_FragColor = vColor;
+    float z = gl_FragCoord.z/gl_FragCoord.w;
+    float fog = exp2( -1.442695 * uFogDensity * z * z);
+    fog = clamp(fog, 0.0, 1.0);
+    gl_FragColor = vColor * fog + uFogColor *(1.0-fog);
 }
 """
 
@@ -146,7 +151,7 @@ def create_program(vertex_src,fragment_src,bindings=[]):
         glDeleteProgram(program)
         raise GLException(
                 "Error linking program:\n%s" % glGetProgramInfoLog(program))
-    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClearColor(0.3,0.3,0.35,1.0)
     return program
 
 
@@ -233,11 +238,15 @@ translation = Vector3()
 zstamp = time.time()
 
 def draw_invader(x,y,z):
-        ploc = glGetUniformLocation(tri_program,"uPerspective")
+        loc = glGetUniformLocation(tri_program,"uPerspective")
         p = Matrix4.new_perspective(pi/6,4.0/3.0,0.1,10.0)
-        glUniformMatrix4fv(ploc, False, matToList(p))
-        lloc = glGetUniformLocation(tri_program,"uLightDir")
-        glUniform3f(lloc,-1.0,0.4,0.7)
+        glUniformMatrix4fv(loc, False, matToList(p))
+        loc = glGetUniformLocation(tri_program,"uLightDir")
+        glUniform3f(loc,-1.0,0.4,0.7)
+        loc = glGetUniformLocation(tri_program,"uFogDensity")
+        glUniform1f(loc,0.017)
+        loc = glGetUniformLocation(tri_program,"uFogColor")
+        glUniform4f(loc,0.3,0.3,0.35,1.0)
         for i in [Matrix4.new_identity(),
                   Matrix4.new_rotatex(pi/2),
                   Matrix4.new_rotatex(-pi/2),

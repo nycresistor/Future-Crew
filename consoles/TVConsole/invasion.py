@@ -19,6 +19,16 @@ f = font.Font('./LCD.ttf',48)
 from itertools import chain
 import time
 
+# invader params
+# inv_z - depth of base cube
+# inv_inset - inset of recess
+# inv_recess - recess depth
+# inv_spike - spike length
+inv_z = 0.4
+inv_inset = 0.3
+inv_recess = 0.2
+inv_spike = 1.2
+
 def truncline(text, maxwidth):
         real=len(text)       
         stext=text           
@@ -265,17 +275,45 @@ def add_flat_tri(p, vertices, normals, indices):
         indices += array('H',[next, next+1, next+2])
         
 def draw_invader_element(tmat,ix,iy,iz):
-        z = 0.5
-        w = 0.5
+        # invader params
+        # inv_z - depth of base cube
+        # inv_inset - inset of recess
+        # inv_recess - recess depth
+        # inv_spike - spike length
         vVertices = array('f')
         vNormals = array('f')
         vIndices = array('H')
-        c = [ Vector3(w,w,z),
-              Vector3(-w,w,z),
-              Vector3(w,-w,z),
-              Vector3(-w,-w,z) ]
-        add_flat_tri([c[0],c[1],c[3]],vVertices,vNormals,vIndices)
-        add_flat_tri([c[0],c[3],c[2]],vVertices,vNormals,vIndices)
+        r_xy = inv_z - inv_inset
+        r_z  = inv_z - inv_recess
+        c = [ Vector3(inv_z,inv_z,inv_z),
+              Vector3(-inv_z,inv_z,inv_z),
+              Vector3(inv_z,-inv_z,inv_z),
+              Vector3(-inv_z,-inv_z,inv_z),
+
+              Vector3(r_xy,r_xy,r_z),
+              Vector3(-r_xy,r_xy,r_z),
+              Vector3(r_xy,-r_xy,r_z),
+              Vector3(-r_xy,-r_xy,r_z),
+              
+              Vector3(0,0,inv_spike)]
+
+        add_flat_tri([c[0],c[1],c[4]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[1],c[5],c[4]],vVertices,vNormals,vIndices)
+
+        add_flat_tri([c[1],c[3],c[5]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[3],c[7],c[5]],vVertices,vNormals,vIndices)
+
+        add_flat_tri([c[3],c[2],c[7]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[2],c[6],c[7]],vVertices,vNormals,vIndices)
+
+        add_flat_tri([c[2],c[0],c[6]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[0],c[4],c[6]],vVertices,vNormals,vIndices)
+
+        add_flat_tri([c[5],c[8],c[4]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[7],c[8],c[5]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[6],c[8],c[7]],vVertices,vNormals,vIndices)
+        add_flat_tri([c[4],c[8],c[6]],vVertices,vNormals,vIndices)
+
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
@@ -286,6 +324,8 @@ def draw_invader_element(tmat,ix,iy,iz):
         m = Matrix4()
         zdist = ((time.time()-zstamp)/2.0)%4.0
         m.translate(ix,iy,iz+zdist)
+        m.rotatex((pi/2)*(zdist))
+        m.rotatey((pi/2)*(zdist/2))
         m = m*tmat
         glUniformMatrix4fv(tloc, False, matToList(m))
         #print len(vVertices),len(vNormals),len(vIndices)

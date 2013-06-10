@@ -5,7 +5,7 @@ Registration
 
 Console to server. Must be the first transaction.
 
-```json
+```
 { 
     'a' : 'register'
     'name' : _console name as string_ 

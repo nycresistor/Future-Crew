@@ -1,4 +1,4 @@
-Big fat refactor two: messages no longer bother with responses. It's all very UDP.
+The protocol for future crew is entirely unidirectional.
 
 Registration
 ============
@@ -10,6 +10,11 @@ Console to server. Must be the first transaction.
     'name' : _console name as string_ 
 }
 
+Unregistration
+==============
+
+There is no unregistration message; the client merely closes the socket.
+
 Status
 ======
 
@@ -20,7 +25,18 @@ Query:
     'a' : 'status'
     'avail_slots': _list of available message slots_
     'avail_games': _suggested games_
+    'avail_glitches': _available glitches_
     'bored': _boolean; true if the console is waiting for a new game_
+}
+
+Glitch Slots
+------------
+
+The glitch slot describes a glitch that can run on the console.
+{
+    'glitchid': _identifier of the glitch_
+    'difficulty': _0 is completely cosmetic, 10 is game-ruining_
+    'duration': _glitch duration in seconds_
 }
 
 Message Slots
@@ -58,7 +74,12 @@ Server to console. Messages fill message slots. They can be posted to fill slots
 Glitches
 ========
 
-TODO
+Server to console. Run a glitch which disrupts gameplay to a greater or lesser extent.
+
+{
+    'a': 'glitch'
+    'glitchid': _identifier for this glitch, as in glitch slot object_
+}
 
 Game Update
 ===========

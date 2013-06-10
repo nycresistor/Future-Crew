@@ -29,6 +29,9 @@ inv_inset = 0.3
 inv_recess = 0.2
 inv_spike = 1.2
 
+# fog density
+fog_density = 0.027
+
 def truncline(text, maxwidth):
         real=len(text)       
         stext=text           
@@ -254,7 +257,7 @@ def draw_invader(x,y,z):
         loc = glGetUniformLocation(tri_program,"uLightDir")
         glUniform3f(loc,-1.0,0.4,0.7)
         loc = glGetUniformLocation(tri_program,"uFogDensity")
-        glUniform1f(loc,0.017)
+        glUniform1f(loc,fog_density)
         loc = glGetUniformLocation(tri_program,"uFogColor")
         glUniform4f(loc,0.3,0.3,0.35,1.0)
         for i in [Matrix4.new_identity(),
@@ -331,7 +334,6 @@ def draw_invader_element(tmat,ix,iy,iz):
         #print len(vVertices),len(vNormals),len(vIndices)
         glDrawElements(GL_TRIANGLES, len(vIndices), GL_UNSIGNED_SHORT, vIndices)
 
-# Draw a triangle using the shaders.
 def draw(program,w,h):
     # Set the viewport.
     glViewport(0, 0, width, height)

@@ -107,8 +107,12 @@ void main()
 {
     vec3 v1 = vec3(uTransform * aPosition);
     vec3 n1 = vec3(uTransform * vec4(aNormal, 0.0));
-    vColor = aColor * dot(n1,uLightDir);
+    vColor = aColor * dot(n1,uLightDir) * length(v1)/10.0;
     gl_Position = uPerspective * uTransform * aPosition;
+    //vColor[0] = gl_Position.z/8.0;
+    //vColor[1] = 0.0;
+    //vColor[2] = 0.0;
+    vColor[3] = 1.0;
 }
 """
    
@@ -231,9 +235,9 @@ translation = Vector3()
 
 zstamp = time.time()
 
-def draw_invader():
+def draw_invader(x,y,z):
         ploc = glGetUniformLocation(tri_program,"uPerspective")
-        p = Matrix4.new_perspective(90.0,4.0/3.0,0.1,10.0)
+        p = Matrix4.new_perspective(pi/6,4.0/3.0,0.1,10.0)
         glUniformMatrix4fv(ploc, False, matToList(p))
         lloc = glGetUniformLocation(tri_program,"uLightDir")
         glUniform3f(lloc,-1.0,0.4,0.7)
@@ -244,7 +248,7 @@ def draw_invader():
                   Matrix4.new_rotatey(-pi/2),
                   Matrix4.new_rotatez(pi/2),
                   Matrix4.new_rotatex(pi)]:
-                draw_invader_element(i)
+                draw_invader_element(i,x,y,z)
 
 def add_flat_tri(p, vertices, normals, indices):
         n = (p[1]-p[0]).cross(p[2]-p[0]).normalize()
@@ -254,7 +258,7 @@ def add_flat_tri(p, vertices, normals, indices):
         next = len(indices)
         indices += array('H',[next, next+1, next+2])
         
-def draw_invader_element(tmat):
+def draw_invader_element(tmat,ix,iy,iz):
         z = 0.5
         w = 0.5
         vVertices = array('f')
@@ -271,17 +275,15 @@ def draw_invader_element(tmat):
         glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vVertices)
         glVertexAttribPointer(1, 3, GL_FLOAT, False, 0, vNormals)
         glDisableVertexAttribArray(2)
-        glVertexAttrib4f(2, 1.0, 0.0, 1.0, 1.0)
+        glVertexAttrib4f(2, 0.7, 0.0, 1.0, 1.0)
         tloc = glGetUniformLocation(tri_program,"uTransform")
         m = Matrix4()
         zdist = ((time.time()-zstamp)/2.0)%4.0
-        m.translate(1.0,-0.7,-4.0+zdist)
+        m.translate(ix,iy,iz+zdist)
         m = m*tmat
         glUniformMatrix4fv(tloc, False, matToList(m))
         #print len(vVertices),len(vNormals),len(vIndices)
         glDrawElements(GL_TRIANGLES, len(vIndices), GL_UNSIGNED_SHORT, vIndices)
-        vVertices.append(5)
-        vNormals.append(5)
 
 # Draw a triangle using the shaders.
 def draw(program,w,h):
@@ -290,7 +292,9 @@ def draw(program,w,h):
     # Clear the color buffer.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glUseProgram(tri_program)
-    draw_invader()
+    draw_invader(1.0,-0.7,-4.0)
+    draw_invader(0.1,0.2,-8.0)
+    draw_invader(0.35,0.7,-9.0)
     # Use the text program object.
     glUseProgram(text_program)
     for slot in slots:
@@ -324,7 +328,11 @@ if __name__ == '__main__':
 
     native_window = ppCreateNativeWindow()
     display, surface = create_egl_context(native_window,
-            [EGL_RED_SIZE, 5, EGL_GREEN_SIZE, 6, EGL_BLUE_SIZE, 5, EGL_SAMPLES, 4])
+            [EGL_RED_SIZE, 5, 
+             EGL_GREEN_SIZE, 6, 
+             EGL_BLUE_SIZE, 5, 
+             EGL_DEPTH_SIZE, 16,
+             EGL_SAMPLES, 4])
 
     width = eglQuerySurface(display, surface, EGL_WIDTH)
     height = eglQuerySurface(display, surface, EGL_HEIGHT)
@@ -341,7 +349,7 @@ if __name__ == '__main__':
     textures = glGenTextures(2)
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    #glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for i in range(len(textures)):
         glActiveTexture(GL_TEXTURE0 + i)

@@ -8,6 +8,43 @@ from os import getenv
 
 portNum = getenv('SERVER_PORT',2600)
 
+class Session:
+    '''A 'session' is a set of games played in sequence-- basically,
+    what the players think of as a complete 'game'. There is a single
+    score for the entire session.'''
+
+    def __init__(self):
+        self.reset_values()
+
+    def reset_values(self):
+        self.score = 0
+        self.state = None
+        self.pos_score = 0
+        self.neg_score = 0
+        self.pos_threshold = 50;
+        self.neg_threshold = -50;
+
+    def start(self):
+        self.reset_values()
+        self.state = 'running'
+        for console in Console.consoles.copy():
+            console.send_session('starting','Future Crew is Go!', self.score)
+
+    def game_done(self,won,score):
+        self.score += score
+        if score > 0: self.pos_score += score
+        else: self.neg_score += score
+        if self.pos_score > self.pos_threshold:
+            print "Game is won"
+            for console in Console.consoles.copy():
+                console.send_session('won','Future Crew Won!', self.score)
+        elif self.neg_score < self.neg_threshold:
+            print "Game is lost"
+            for console in Console.consoles.copy():
+                console.send_session('lost','Future Crew Lost.', self.score)
+
+session = Session()
+
 class Game:
     '''A 'game' is a message displayed on one console, and a set
     of actions performed on a (usually different) console to 'win' the
@@ -33,6 +70,7 @@ class Game:
         self.play_console.send_control(self.msg,'start')
 
     def resolve(self,won,score):
+        session.game_done(won,score)
         if won:
             print "+ Game {0} won, {1} points".format(self.id[1],score)
         else:
@@ -73,6 +111,18 @@ class Console:
             }
         try:
             self.socket.write_message(json.dumps(m_msg))
+        except:
+            print "Can't send message; possible that client has dropped!"
+
+    def send_session(self,state,message,score):
+        s_msg = {
+            'a':'session_update',
+            'state':state,
+            'message':message,
+            'score':score
+            }
+        try:
+            self.socket.write_message(json.dumps(s_msg))
         except:
             print "Can't send message; possible that client has dropped!"
 

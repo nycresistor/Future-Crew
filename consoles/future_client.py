@@ -58,6 +58,7 @@ class Game(object):
         self.score = None
         self.start_time = 0
         self.message = message
+        self.supress_msg = False
         self.exit_evt = threading.Event()
         self.exit_evt.set()
 
@@ -82,7 +83,12 @@ class Game(object):
                 'result': won,
                 'score': self.score
                 }
-        self.client.socket.send(json.dumps(msg))
+        if not self.supress_msg:
+            try:
+                self.client.socket.send(json.dumps(msg))
+            except:
+                pass
+        self.supress_msg = False
 
     def wait(self,how_long):
         return not self.exit_evt.wait(how_long)
@@ -92,6 +98,11 @@ class Game(object):
 
     def cancel(self):
         self.finish(0)
+
+    def reset(self):
+        if self.is_running():
+            self.supress_msg = True
+            self.finish(0)
 
     def finish(self,score):
         if self.score == None:
@@ -150,15 +161,16 @@ class FutureClient(object):
                 print "Could not connect to server. Trying again."
                 time.sleep(1.5)
 
-        self.running_games = set()
         msg = {'a':'register','name':self.name}
         self.socket.send(json.dumps(msg))
         self.message_slots = set()
         self.available_games = set()
         self.max_games = max_games
+        self.state = 'reset'
         self.cmdmap = {
             'message': self.on_message,
-            'control': self.on_control
+            'control': self.on_control,
+            'session_update': self.on_session
             }
         self.started = False
         self.Thread = None
@@ -176,15 +188,26 @@ class FutureClient(object):
         elif msg['operation'] == 'cancel':
             game.cancel()
 
+    def on_session(self, msg):
+        "Respond to a session update by cancelling all games and clearing messages"
+        for x in self.available_games:
+            if x.is_running():
+                x.reset()
+        for x in self.message_slots:
+            x.message('')
+        self.state = msg['state']
+        score = msg['score']
+        message = msg['message']
+
     def status(self):
-        self.running_games = [x.jsonable() for x in self.available_games if x.is_running()]
+        running_games = [x.jsonable() for x in self.available_games if x.is_running()]
         msg = {
             'a':'status',
             'avail_slots':[x.jsonable() for x in self.message_slots if not x.in_use],
             'avail_games':[x.jsonable() for x in self.available_games if not x.is_running()],
-            'bored':len(self.running_games) < self.max_games
+            'bored':len(running_games) < self.max_games
             }
-        if self.max_games <= len(self.running_games):
+        if self.max_games <= len(running_games):
             msg['avail_games'] = []
         self.socket.send(json.dumps(msg))
 

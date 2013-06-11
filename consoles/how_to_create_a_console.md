@@ -37,6 +37,41 @@ For a server:
     sudo pip install websocket-client
     git clone git://github.com/nycresistor/Future-Crew.git
 
+
+For anything needing OpenGL, you'll need pogles. First, install SIP:
+
+    apt-get install python-dev
+    wget http://sourceforge.net/projects/pyqt/files/sip/sip-4.14.6/sip-4.14.6.tar.gz
+    tar zxf sip-4.14.6.tar.gz 
+    cd sip-4.14.6/
+    python configure.py
+    make
+    sudo make install
+
+Then, install pogles:
+
+    mkdir tmp
+    cd tmp
+    sudo pip install pogles # this step will fail! Don't freak out.
+    cd build/pogles
+    sudo vi setup.py
+    
+Change this file so the lines:
+
+    include_dirs = ['/opt/vc/include',
+            '/opt/vc/include/interface/vcos/pthreads']
+
+become:
+
+    include_dirs = ['/opt/vc/include',
+            '/opt/vc/include/interface/vmcs_host/linux',
+            '/opt/vc/include/interface/vcos/pthreads']
+
+Then finish the installation:
+
+    sudo python setup.py install
+
+
 Console hardware
 ----------------
 

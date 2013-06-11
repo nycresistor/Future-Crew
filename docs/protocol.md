@@ -20,6 +20,24 @@ Unregistration
 
 There is no unregistration message; the client merely closes the socket.
 
+Starting and Stopping: Session Control
+======================================
+
+Games are started or aborted with these messages.
+
+```
+{
+    'a':'session_start'
+}
+```
+
+
+```
+{
+    'a':'session_abort'
+}
+```
+
 
 Session update
 ==============

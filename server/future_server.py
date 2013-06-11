@@ -30,6 +30,9 @@ class Session:
         for console in Console.consoles.copy():
             console.send_session('starting','Future Crew is Go!', self.score)
 
+    def abort(self):
+        self.game_done(False,0)
+
     def game_done(self,won,score):
         self.score += score
         if score > 0: self.pos_score += score
@@ -42,6 +45,12 @@ class Session:
             print "Game is lost"
             for console in Console.consoles.copy():
                 console.send_session('lost','Future Crew Lost.', self.score)
+
+    def heartbeat(self):
+        if self.state == 'running':
+            for c in Console.consoles.clone():
+                if c.wants_game():
+                    c.make_new_game()
 
 session = Session()
 
@@ -152,10 +161,8 @@ class Console:
         self.avail_slots = msg.get('avail_slots',[])
         self.avail_games = msg.get('avail_games',[])
         self.bored = msg.get('bored',False)
-        if self.wants_game():
-            self.makeNewGame()
 
-    def makeNewGame(self):
+    def make_new_game(self):
         # minimum interval between games: 2 seconds
         if (time.time() - self.last_game_start) < 2.0:
             return False
@@ -179,7 +186,9 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.cmdmap = {
             'register': self.on_register,
             'status': self.on_status,
-            'update': self.on_update
+            'update': self.on_update,
+            'session_start': self.on_start,
+            'session_abort': self.on_abort
             }
 
     def on_register(self, message):
@@ -192,6 +201,12 @@ class SpaceteamSocket(websocket.WebSocketHandler):
 
     def on_status(self, message):
         self.console.handle_status(message)
+
+    def on_abort(self, message):
+        session.abort()
+
+    def on_start(self, message):
+        session.start()
 
     def on_update(self, msg):
         try:

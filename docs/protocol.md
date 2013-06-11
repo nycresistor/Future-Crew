@@ -20,18 +20,6 @@ Unregistration
 
 There is no unregistration message; the client merely closes the socket.
 
-Ready to Play
-=============
-
-Console to server. Indicate that there is a player at the
-console ready to play a new session. Should only be sent between
-sessions; when sent during a running session, ignored.
-```
-{
-    'a': 'ready'
-    'is_ready': _true if ready, false if not ready_
-}
-```
 
 Session update
 ==============

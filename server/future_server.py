@@ -31,24 +31,32 @@ class Session:
             console.send_session('starting','Future Crew is Go!', self.score)
 
     def abort(self):
-        self.game_done(False,0)
+        self.session_done(False)
+
+    def session_done(self,won):
+        print "Game is won:",won
+        self.state = None
+        if won:
+            cmd = 'won'
+            msg = 'Game is won!!!'
+        else:
+            cmd = 'lost'
+            msg = 'Game is lost!!!'
+        for console in Console.consoles.copy():
+            console.send_session(cmd, msg, self.score)
 
     def game_done(self,won,score):
         self.score += score
         if score > 0: self.pos_score += score
         else: self.neg_score += score
         if self.pos_score > self.pos_threshold:
-            print "Game is won"
-            for console in Console.consoles.copy():
-                console.send_session('won','Future Crew Won!', self.score)
+            self.session_done(True)
         elif self.neg_score < self.neg_threshold:
-            print "Game is lost"
-            for console in Console.consoles.copy():
-                console.send_session('lost','Future Crew Lost.', self.score)
+            self.session_done(False)
 
     def heartbeat(self):
         if self.state == 'running':
-            for c in Console.consoles.clone():
+            for c in list(Console.consoles):
                 if c.wants_game():
                     c.make_new_game()
 
@@ -237,6 +245,7 @@ def heartbeat():
             print("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
+    session.heartbeat()
 
 if __name__ == "__main__":
     application.listen(portNum, '0.0.0.0')

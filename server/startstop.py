@@ -3,6 +3,7 @@ import json
 import time
 import threading
 from sys import argv
+from os import getenv
 
 urlstring = None
 
@@ -16,10 +17,10 @@ if __name__=='__main__':
         time.sleep(1.5)
 
     msg = {}
-    if sys.argv[1] == 'start':
+    if argv[1] == 'start':
         msg = {'a':'session_start'}
         socket.send(json.dumps(msg))
-    elif sys.argv[1] == 'abort':
+    elif argv[1] == 'abort':
         msg = {'a':'session_abort'}
         socket.send(json.dumps(msg))
         

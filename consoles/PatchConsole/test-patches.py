@@ -7,6 +7,8 @@ from patches import *
 
 port = serial.Serial("/dev/tty.usbmodem12341", timeout=3)
 
+oldsw = 0
+
 while 1:
 	keys = port.readline().strip()
 	if not keys:
@@ -19,8 +21,10 @@ while 1:
 	sw = int(cons[0], 16)
 	sw &= ~0x80; # switch 8 is flaky
 	for i in range(0,8):
-		if (sw & (1 << i)):
-			print "Switch: ", switches[i]
+		val = (sw >> i) & 1
+		if ((oldsw >> i) & 1) ^ val:
+			print "Switch: ", switches[i], 'ON' if val else 'OFF'
+	oldsw = sw
 
 	for con in cons[1:]:
 		fromto = con.split(':')

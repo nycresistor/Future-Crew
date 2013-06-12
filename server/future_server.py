@@ -71,7 +71,7 @@ class Game:
 
     def __init__(self,message_console,slot_id,play_console,msg):
         self.message_console = message_console
-        self.play_console = play_console
+        self.play_console = play_console # the console playing the game
         self.msg = msg
         self.slot_id = slot_id
         self.id = (play_console,msg['gameid'])
@@ -87,6 +87,7 @@ class Game:
         self.play_console.send_control(self.msg,'start')
 
     def resolve(self,won,score):
+	# self.play_console.name returns the name of the console.
         session.game_done(won,score)
         if won:
             print "+ Game {0} won, {1} points".format(self.id[1],score)

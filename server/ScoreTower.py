@@ -4,6 +4,11 @@ import array
 import time
 import serial
 
+### Console Names:
+# ToyPianoClient
+# PatchConsole
+# VidEditConsole
+
 ######################################################
 #### Strip pattern control functions (\/ below \/) ###
 
@@ -13,7 +18,7 @@ import serial
 # Make a lovely wave pattern 
 def attract():
 	i = 0
-	j = 0
+	j = options.strip_length
 	k = 0
 	while True:
         	data = ''
@@ -110,7 +115,10 @@ def attract():
 		# increment j after 20 iterations
         	if i == 0:
 			# count from 0 to 255, and do it again
-                	j = (j+1)%255
+                	#j = (j+1)%255
+                	j = (j-1)%255
+			if j == -1:
+				j = options.strip_length
 	
         	strip.draw(data)
 				

@@ -4,10 +4,17 @@ import array
 import time
 import serial
 
-### Console Names:
-# ToyPianoClient
-# PatchConsole
-# VidEditConsole
+def match_console(console)
+	if console = 'ToyPianoClient':
+		console = 0
+	if console = 'PatchConsole':
+		console = 1
+	if console = 'VidEditConsole':
+		console = 2
+	if console = 'TeletypeConsole':
+		console = 3
+
+	return console
 
 ######################################################
 #### Strip pattern control functions (\/ below \/) ###
@@ -125,7 +132,7 @@ def attract():
 				
 
 # When a session starts, make a scorebar
-def begin_session():
+def scoretower_begin():
 	# A score of '0' will be indicated by a bar of 20 LED pixels
 	# it will go up or down as the score changes
 	score = 20
@@ -144,7 +151,8 @@ def begin_session():
        	strip.draw(data)
 
 # Make strip blink red if consoles sends a miss
-def miss(console, score):
+def scoretower_miss(console, score):
+	console = match_console(console)
 	score = score + 20
         data = ''
         for row in range(score, options.strip_length):
@@ -178,7 +186,8 @@ def miss(console, score):
 
 # Make strip blink white if consoles sends a hit
 #def hit():
-def hit(console, score):
+def scoretower_hit(console, score):
+	console = match_console(console)
 	score = score + 20
         data = ''
         for row in range(score, options.strip_length):
@@ -211,7 +220,7 @@ def hit(console, score):
 
 
 # Make all strips blink red if servers declares game is lost
-def lost():
+def scoretower_lost():
 	k = 0
 	while k < 6:
 		data = ''
@@ -239,7 +248,7 @@ def lost():
 	attract()
 
 # Make all strips blink white if servers declare game is won
-def won():
+def scoretower_won():
 	k = 0
 	while k < 6: 	# blink 5 times
 		data = ''
@@ -268,32 +277,26 @@ def won():
 
 	attract() 	# Return to idle/attract mode
 
+strip = None
+image_width = 8 # width of the picture
+
+def init(serialport):
+	strip=LedStrips.LedStrips(image_width,0)
+	strip.connect(serialport)
 
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################
 
-parser = optparse.OptionParser()
-parser.add_option("-p", "--serialport", dest="serial_port",
-	help="serial port (ex: /dev/ttyUSB0)", default="/dev/tty.usbmodel12341")
-parser.add_option("-l", "--length", dest="strip_length",
-        help="length of the strip", default=160, type=int)
+if __name__ == "__main__":
+	parser = optparse.OptionParser()
+	parser.add_option("-p", "--serialport", dest="serial_port",
+		help="serial port (ex: /dev/ttyUSB0)", default="/dev/tty.usbmodel12341")
+	parser.add_option("-l", "--length", dest="strip_length",
+        	help="length of the strip", default=160, type=int)
+	
+	(options, args) = parser.parse_args()
+	
+	init(options.serial_port)
 
-(options, args) = parser.parse_args()
-
-image_width = 8 # width of the picture
-
-strip = LedStrips.LedStrips(image_width, 0)
-strip.connect(options.serial_port)
-
-begin_session()
-time.sleep(2)
-hit(0,1)
-time.sleep(5)
-miss(1,-3)
-time.sleep(5)
-hit(0,5)
-time.sleep(5)
-won()
-#attract()
 
 

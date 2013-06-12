@@ -28,6 +28,7 @@ class Session:
     def start(self):
         self.reset_values()
         self.state = 'running'
+	scoretower_begin()
         for console in Console.consoles.copy():
             console.send_session('starting','Future Crew is Go!', self.score)
 
@@ -40,9 +41,11 @@ class Session:
         if won:
             cmd = 'won'
             msg = 'Game is won!!!'
+	    scoretower_won() # blink won sequence, return to attract
         else:
             cmd = 'lost'
             msg = 'Game is lost!!!'
+	    scoretower_lost() # blink lost sequence, return to attract
         for console in Console.consoles.copy():
             console.send_session(cmd, msg, self.score)
 
@@ -91,8 +94,10 @@ class Game:
 	# self.play_console.name returns the name of the console.
         session.game_done(won,score)
         if won:
+	    scoretower_hit(self.play_console.name, score) 
             print "+ Game {0} won, {1} points".format(self.id[1],score)
         else:
+	    scoretower_miss(self.play_console.name, score) 
             print "- Game {0} lost, {1} points".format(self.id[1],score)
         self.message_console.send_message(None,self.slot_id)
     

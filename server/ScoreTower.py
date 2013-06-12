@@ -18,7 +18,8 @@ import serial
 # Make a lovely wave pattern 
 def attract():
 	i = 0
-	j = options.strip_length
+	#j = 0 				# flow in
+	j = options.strip_length 	# flow out
 	k = 0
 	while True:
         	data = ''
@@ -115,21 +116,38 @@ def attract():
 		# increment j after 20 iterations
         	if i == 0:
 			# count from 0 to 255, and do it again
-                	#j = (j+1)%255
-                	j = (j-1)%255
+                	#j = (j+1)%255  # flow in
+                	j = (j-1)%255 	# flow out
 			if j == -1:
 				j = options.strip_length
 	
         	strip.draw(data)
 				
 
-# Make the column white mid-way up at the start of the game
-#def play_mode():
+# When a session starts, make a scorebar
+def begin_session():
+	# A score of '0' will be indicated by a bar of 20 LED pixels
+	# it will go up or down as the score changes
+	score = 20
+	data = ''
+	for row in range(0, score):
+		for col in range(0, image_width):
+			data += chr(75)	
+			data += chr(75)	
+			data += chr(75)	
+	for row in range(score+1, options.strip_length):
+		for col in range(0, image_width):
+			data += chr(0)	
+			data += chr(0)	
+			data += chr(0)	
+			
+       	strip.draw(data)
 
 # Make strip blink red if consoles sends a miss
-def miss(console):
+def miss(console, score):
+	score = score + 20
         data = ''
-        for row in range(0, options.strip_length):
+        for row in range(score, options.strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -142,13 +160,28 @@ def miss(console):
 
         strip.draw(data)
         # Wait.
-        time.sleep(.5)
+        time.sleep(.2)
+	# Update score tower
+	data = ''
+	for row in range(0, score):
+		for col in range(0, image_width):
+			data += chr(75)	
+			data += chr(75)	
+			data += chr(75)	
+	for row in range(score, options.strip_length):
+		for col in range(0, image_width):
+			data += chr(0)	
+			data += chr(0)	
+			data += chr(0)	
+        strip.draw(data)
+
 
 # Make strip blink white if consoles sends a hit
 #def hit():
-def hit(console):
+def hit(console, score):
+	score = score + 20
         data = ''
-        for row in range(0, options.strip_length):
+        for row in range(score, options.strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -161,7 +194,21 @@ def hit(console):
 
         strip.draw(data)
         # Wait.
-        time.sleep(.5)
+        time.sleep(.2)
+	# Update score tower
+	data = ''
+	for row in range(0, score):
+		for col in range(0, image_width):
+			data += chr(75)	
+			data += chr(75)	
+			data += chr(75)	
+	for row in range(score, options.strip_length):
+		for col in range(0, image_width):
+			data += chr(0)	
+			data += chr(0)	
+			data += chr(0)	
+        strip.draw(data)
+
 
 # Make all strips blink red if servers declares game is lost
 def lost():
@@ -194,10 +241,11 @@ def lost():
 # Make all strips blink white if servers declare game is won
 def won():
 	k = 0
-	while k < 6:
+	while k < 6: 	# blink 5 times
 		data = ''
 		for row in range(0, options.strip_length):
 			for col in range(0, image_width):
+				# blink on
 				data += chr(75)
 				data += chr(75)
 				data += chr(75)
@@ -208,6 +256,7 @@ def won():
 		data = ''
 		for row in range(0, options.strip_length):
 			for col in range(0, image_width):
+				# blink off
 				print col
 				data += chr(0)
 				data += chr(0)
@@ -217,11 +266,8 @@ def won():
 		time.sleep(.3)
 		k = k + 1
 
-	attract()
+	attract() 	# Return to idle/attract mode
 
-#def play_mode():
-	
-	
 
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################
@@ -239,9 +285,15 @@ image_width = 8 # width of the picture
 strip = LedStrips.LedStrips(image_width, 0)
 strip.connect(options.serial_port)
 
+begin_session()
+time.sleep(2)
+hit(0,1)
+time.sleep(5)
+miss(1,-3)
+time.sleep(5)
+hit(0,5)
+time.sleep(5)
 won()
-#lost()
-#miss(1)
 #attract()
 
 

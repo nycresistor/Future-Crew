@@ -4,6 +4,7 @@ from tornado import websocket
 import json
 import time
 import random
+import ScoreTower
 from os import getenv
 
 portNum = getenv('SERVER_PORT',2600)

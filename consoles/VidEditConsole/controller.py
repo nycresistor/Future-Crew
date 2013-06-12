@@ -21,7 +21,7 @@ class Controller:
             print("Found {0}".format(i))
         self.t=ports['teensy']
         self.tpp=ports['teensypp']
-        self.tpp=ports['teensy3']
+        self.t3=ports['teensy3']
         self.tlock = threading.RLock()
         self.tpplock = threading.RLock()
         self.t3lock = threading.RLock()
@@ -40,7 +40,7 @@ class Controller:
         self.t3.write('r\n')
         knobs = self.t3.readline().strip()
         self.t3lock.release()
-        return map(lambda x:map(int,x.split('/')),knobs)
+        return map(lambda x:map(int,x.split('/')),knobs.split())
 
     def get_keypresses(self):
         ipressed = []
@@ -185,11 +185,11 @@ else:
     # test mode
     for i in range(led_count):
         c.set_led(i,1)
-        time.sleep(0.5)
+        time.sleep(0.1)
         c.set_led(i,0)
     for i in range(illum_count):
         c.set_illuminated(i,1)
-        time.sleep(0.5)
+        time.sleep(0.1)
         c.set_illuminated(i,0)
     while True:
         for i in c.get_keypresses():

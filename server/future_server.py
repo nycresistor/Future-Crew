@@ -8,6 +8,60 @@ from os import getenv
 
 portNum = getenv('SERVER_PORT',2600)
 
+class Session:
+    '''A 'session' is a set of games played in sequence-- basically,
+    what the players think of as a complete 'game'. There is a single
+    score for the entire session.'''
+
+    def __init__(self):
+        self.reset_values()
+
+    def reset_values(self):
+        self.score = 0
+        self.state = None
+        self.pos_score = 0
+        self.neg_score = 0
+        self.pos_threshold = 50;
+        self.neg_threshold = -50;
+
+    def start(self):
+        self.reset_values()
+        self.state = 'running'
+        for console in Console.consoles.copy():
+            console.send_session('starting','Future Crew is Go!', self.score)
+
+    def abort(self):
+        self.session_done(False)
+
+    def session_done(self,won):
+        print "Game is won:",won
+        self.state = None
+        if won:
+            cmd = 'won'
+            msg = 'Game is won!!!'
+        else:
+            cmd = 'lost'
+            msg = 'Game is lost!!!'
+        for console in Console.consoles.copy():
+            console.send_session(cmd, msg, self.score)
+
+    def game_done(self,won,score):
+        self.score += score
+        if score > 0: self.pos_score += score
+        else: self.neg_score += score
+        if self.pos_score > self.pos_threshold:
+            self.session_done(True)
+        elif self.neg_score < self.neg_threshold:
+            self.session_done(False)
+
+    def heartbeat(self):
+        if self.state == 'running':
+            for c in list(Console.consoles):
+                if c.wants_game():
+                    c.make_new_game()
+
+session = Session()
+
 class Game:
     '''A 'game' is a message displayed on one console, and a set
     of actions performed on a (usually different) console to 'win' the
@@ -33,6 +87,7 @@ class Game:
         self.play_console.send_control(self.msg,'start')
 
     def resolve(self,won,score):
+        session.game_done(won,score)
         if won:
             print "+ Game {0} won, {1} points".format(self.id[1],score)
         else:
@@ -71,7 +126,22 @@ class Console:
             'text' : message,
             'slotid' : slot
             }
-        self.socket.write_message(json.dumps(m_msg))
+        try:
+            self.socket.write_message(json.dumps(m_msg))
+        except:
+            print "Can't send message; possible that client has dropped!"
+
+    def send_session(self,state,message,score):
+        s_msg = {
+            'a':'session_update',
+            'state':state,
+            'message':message,
+            'score':score
+            }
+        try:
+            self.socket.write_message(json.dumps(s_msg))
+        except:
+            print "Can't send message; possible that client has dropped!"
 
     def send_control(self,game,operation):
         p_msg = {
@@ -79,7 +149,10 @@ class Console:
             'game' : game,
             'operation' : operation
             }
-        self.socket.write_message(json.dumps(p_msg))
+        try:
+            self.socket.write_message(json.dumps(p_msg))
+        except:
+            print "Can't send control; possible that client has dropped!"
 
     def remove(self):
         Console.consoles.remove(self)
@@ -96,10 +169,8 @@ class Console:
         self.avail_slots = msg.get('avail_slots',[])
         self.avail_games = msg.get('avail_games',[])
         self.bored = msg.get('bored',False)
-        if self.wants_game():
-            self.makeNewGame()
 
-    def makeNewGame(self):
+    def make_new_game(self):
         # minimum interval between games: 2 seconds
         if (time.time() - self.last_game_start) < 2.0:
             return False
@@ -123,7 +194,9 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.cmdmap = {
             'register': self.on_register,
             'status': self.on_status,
-            'update': self.on_update
+            'update': self.on_update,
+            'session_start': self.on_start,
+            'session_abort': self.on_abort
             }
 
     def on_register(self, message):
@@ -137,11 +210,21 @@ class SpaceteamSocket(websocket.WebSocketHandler):
     def on_status(self, message):
         self.console.handle_status(message)
 
+    def on_abort(self, message):
+        session.abort()
+
+    def on_start(self, message):
+        session.start()
+
     def on_update(self, msg):
-        Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
+        try:
+            Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
+        except KeyError:
+            print "Update message sent for obsolete game {0}".format(msg['gameid'])
             
     def on_close(self):
         if self.console:
+            self.console.socket = None
             try:
                 self.console.remove()
             except KeyError:
@@ -162,6 +245,7 @@ def heartbeat():
             print("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
+    session.heartbeat()
 
 if __name__ == "__main__":
     application.listen(portNum, '0.0.0.0')

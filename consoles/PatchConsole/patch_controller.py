@@ -1,6 +1,6 @@
 from future_client import FutureClient, Game, MessageSlot
 import serial
-import serial.tools.list_ports as list_ports
+#import serial.tools.list_ports as list_ports
 import time
 import struct
 import threading
@@ -8,20 +8,39 @@ import random
 
 class Controller:
     def __init__(self):
+	self.cons = {}
         self.port = serial.Serial("/dev/ttyACM0", timeout=3)
 
     def get_patches(self):
         keys = self.port.readline().strip()
+	if not keys:
+	    return
 	print keys
+	cons = keys.split(' ')
+	self.switches = cons[0]
+	con_map = {}
+	for con in cons[1:]:
+		fromto = con.split(':')
+		#print fromto[0], '=>', fromto[1]
+		con_map[fromto[0]] = fromto[1]
+	self.cons = con_map
         return
 
-class PatchAtoB(Game):
+class PatchAtoBGame(Game):
     def __init__(self,c):
-        super(PatchAtoB, self).__init__('a2b','Patch A to B')
+        super(PatchAtoBGame, self).__init__('a2b','Patch A to B')
         self.c = c
+	self.patch_from = '1A'
+	self.patch_to = '1F'
 
     def play_game(self):
-	return
+	while 1:
+	    if (self.c.cons.get(self.patch_from,'') != self.patch_to):
+		continue
+
+	    print "Success!"
+	    self.finish(5)
+	    return
 
     def on_start(self):
         t = threading.Thread(target = self.play_game)
@@ -31,10 +50,10 @@ class PatchAtoB(Game):
 class StdoutSlot(MessageSlot):
     def __init__(self, c, id=None, length=40):
         self.c = c
-        super(Stdoutlot, self).__init__(id,length)
+        super(StdoutSlot, self).__init__(id,length)
 
     def on_message(self,text):
-	print "Message", text
+	print "Message: ", text
 
 c = Controller()
 
@@ -49,16 +68,17 @@ slots = [
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
-    fc = FutureClient('ws://localhost:8888/socket','PatchConsole')
+    fc = FutureClient('ws://192.168.1.99:2600/socket','PatchConsole')
+    #fc = FutureClient(name='PatchConsole')
     fc.available_games = games
     fc.message_slots = slots
     fc.start()
-    while True:
-        try:
-            time.sleep(0.05)
-        except:
-            fc.quit()
-            break
+    try:
+	while True:
+	    c.get_patches()
+	    time.sleep(0.05)
+    except:
+	fc.quit()
 else:
     # test mode
     # do nothing

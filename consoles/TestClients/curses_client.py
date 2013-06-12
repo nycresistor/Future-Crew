@@ -17,7 +17,6 @@ class PressGame(Game):
         if not self.wait(2):
             return
         self.update_message('PRESS BUTTON '+self.button+' NOW!!!')
-        print "updates!"
         if not self.wait(2):
             return
         self.finish(-5)

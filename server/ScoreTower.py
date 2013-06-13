@@ -14,6 +14,8 @@ console_map = {
 def match_console(console):
 	return console_map[console]
 
+running = False
+
 ######################################################
 #### Strip pattern control functions (\/ below \/) ###
 
@@ -36,36 +38,38 @@ attract_pattern = [
         10,50,5,     #blue
         5,20,5,      #light blue
         0,10,5,      #light blue
-        0,5,0,       #light blue
-        0,0,0,       #black
+#        0,5,0,       #light blue
+#        0,0,0,       #black
 ]
+
+# intialize 'compiled' attract pattern
+compiled_attract = []
+for row in range(0, 160 + len(attract_pattern)/3):
+        for col in range(0, 8):
+                start = (row%(len(attract_pattern)/3))*3
+                compiled_attract += attract_pattern[start:start+3]
+compiled_attract=array.array('B',compiled_attract)
+
+def stop():
+        running = False
 
 def attract():
         "Make a lovely wave pattern"
 	if not strip:
 		return
-	i = 0
-	#j = 0 				# flow in
-	j = strip_length 	# flow out
-	k = 0
         patt_len = len(attract_pattern)/3
-	while True:
-        	data = []
-        	for row in range(0, strip_length):
-                	for col in range(0, image_width):
-                                start = ((row+j)%patt_len) * 3
-                                data += attract_pattern[start:start+3]
-        	#i = (i+1)%20
-        	i = (i+1)%2
-		# increment j after 20 iterations
-        	if i == 0:
-			# count from 0 to 255, and do it again
-                	#j = (j+1)%255  # flow in
-                	j = (j-1)%255 	# flow out
-			if j == -1:
-				j = strip_length
-        	strip.draw(data)
-                time.sleep(0.03)
+	#j = 0 				# flow in
+	j = patt_len 	# flow out
+	k = 0
+        running = True
+	while running:
+                start = (j % patt_len)*image_width*3
+                bytelen = strip_length*image_width*3
+                strip.draw(compiled_attract[start:bytelen+start])
+                j -= 1 	# flow out
+                if j == -1:
+                        j += patt_len
+                time.sleep(0.04)
 				
 
 # When a session starts, make a scorebar
@@ -168,7 +172,8 @@ def session_lost():
 	if not strip:
 		return
 	k = 0
-	while k < 6:
+        running = True
+	while running and k < 6:
 		data = ''
 		for row in range(0, strip_length):
 			for col in range(0, image_width):
@@ -198,7 +203,8 @@ def session_won():
 	if not strip:
 		return
 	k = 0
-	while k < 6: 	# blink 5 times
+        running = True
+	while running and k < 6: 	# blink 5 times
 		data = ''
 		for row in range(0, strip_length):
 			for col in range(0, image_width):
@@ -237,7 +243,7 @@ def init(serialport):
 
 def shutdown():
         if strip:
-                strip.draw([0]*(strip_length*image_width))
+                strip.draw([0]*(strip_length*image_width*3))
 
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################
@@ -253,6 +259,8 @@ if __name__ == "__main__":
 	strip_length = options.strip_length
 	init(options.serial_port)
         try:
+                game_miss('VidEditConsole',10)
+                #session_lost()
                 attract()
         finally:
                 shutdown()

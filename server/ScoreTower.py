@@ -4,14 +4,14 @@ import array
 import time
 import serial
 
-def match_console(console)
-	if console = 'ToyPianoClient':
+def match_console(console):
+	if console == 'ToyPianoClient':
 		console = 0
-	if console = 'PatchConsole':
+	if console == 'PatchConsole':
 		console = 1
-	if console = 'VidEditConsole':
+	if console == 'VidEditConsole':
 		console = 2
-	if console = 'TeletypeConsole':
+	if console == 'TeletypeConsole':
 		console = 3
 
 	return console
@@ -24,13 +24,15 @@ def match_console(console)
 
 # Make a lovely wave pattern 
 def attract():
+	if not strip:
+		return
 	i = 0
 	#j = 0 				# flow in
-	j = options.strip_length 	# flow out
+	j = strip_length 	# flow out
 	k = 0
 	while True:
         	data = ''
-        	for row in range(0, options.strip_length):
+        	for row in range(0, strip_length):
                 	for col in range(0, image_width):
 				# Every third one should be a diff color
 			#black
@@ -126,13 +128,15 @@ def attract():
                 	#j = (j+1)%255  # flow in
                 	j = (j-1)%255 	# flow out
 			if j == -1:
-				j = options.strip_length
+				j = strip_length
 	
         	strip.draw(data)
 				
 
 # When a session starts, make a scorebar
 def scoretower_begin():
+	if not strip:
+		return
 	# A score of '0' will be indicated by a bar of 20 LED pixels
 	# it will go up or down as the score changes
 	score = 20
@@ -142,7 +146,7 @@ def scoretower_begin():
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score+1, options.strip_length):
+	for row in range(score+1, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -152,10 +156,12 @@ def scoretower_begin():
 
 # Make strip blink red if consoles sends a miss
 def scoretower_miss(console, score):
+	if not strip:
+		return
 	console = match_console(console)
 	score = score + 20
         data = ''
-        for row in range(score, options.strip_length):
+        for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -176,7 +182,7 @@ def scoretower_miss(console, score):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score, options.strip_length):
+	for row in range(score, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -187,10 +193,12 @@ def scoretower_miss(console, score):
 # Make strip blink white if consoles sends a hit
 #def hit():
 def scoretower_hit(console, score):
+	if not strip:
+		return
 	console = match_console(console)
 	score = score + 20
         data = ''
-        for row in range(score, options.strip_length):
+        for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -211,7 +219,7 @@ def scoretower_hit(console, score):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score, options.strip_length):
+	for row in range(score, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -221,10 +229,12 @@ def scoretower_hit(console, score):
 
 # Make all strips blink red if servers declares game is lost
 def scoretower_lost():
+	if not strip:
+		return
 	k = 0
 	while k < 6:
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				data += chr(255)
 				data += chr(0)
@@ -234,7 +244,7 @@ def scoretower_lost():
 		time.sleep(.3)
 
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				print col
 				data += chr(0)
@@ -249,10 +259,12 @@ def scoretower_lost():
 
 # Make all strips blink white if servers declare game is won
 def scoretower_won():
+	if not strip:
+		return
 	k = 0
 	while k < 6: 	# blink 5 times
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				# blink on
 				data += chr(75)
@@ -263,7 +275,7 @@ def scoretower_won():
 		time.sleep(.3)
 
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				# blink off
 				print col
@@ -277,6 +289,7 @@ def scoretower_won():
 
 	attract() 	# Return to idle/attract mode
 
+strip_length = 160
 strip = None
 image_width = 8 # width of the picture
 
@@ -295,7 +308,7 @@ if __name__ == "__main__":
         	help="length of the strip", default=160, type=int)
 	
 	(options, args) = parser.parse_args()
-	
+	strip_length = options.strip_length
 	init(options.serial_port)
 
 

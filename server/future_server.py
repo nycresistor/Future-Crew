@@ -4,8 +4,18 @@ from tornado import websocket
 import json
 import time
 import random
-import ScoreTower
+from ScoreTower import scoretower_begin, scoretower_won, scoretower_lost, scoretower_hit, scoretower_miss
 from os import getenv
+
+gpio_avail = True
+
+try:
+    import RPi.GPIO as GPIO
+except:
+    gpio_avail = False
+
+START_GPIO=23
+ABORT_GPIO=24
 
 portNum = getenv('SERVER_PORT',2600)
 
@@ -253,12 +263,30 @@ def heartbeat():
             console.socket.close()
             console.remove()
     session.heartbeat()
+    if gpio_avail:
+        if GPIO.input(START_GPIO) == GPIO.LOW:
+            if not session.state:
+                print "Start button pressed!"
+                session.start()
+        if GPIO.input(ABORT_GPIO) == GPIO.LOW:
+            if session.state == 'running':
+                print "Abort button pressed!"
+                session.abort()
 
 if __name__ == "__main__":
+    if gpio_avail:
+        print "Scanning GPIO start/abort buttons."
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(START_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(ABORT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    else:
+        print "GPIO disabled."
     application.listen(portNum, '0.0.0.0')
     print("FC server starting; listening on port {0}.".format(portNum))
     pc = PeriodicCallback(heartbeat,100,IOLoop.instance())
     pc.start()
     IOLoop.instance().start()
+    if gpio_avail:
+        GPIO.cleanup()
 
 

@@ -279,7 +279,7 @@ if __name__ == "__main__":
         # tower (tower has no recognition protocol)
         import glob
         ports = glob.glob('/dev/ttyACM*')
-        tower_init(ports[0])
+        tower.init(ports[0])
         pass
     except:
         print "Could not contact LED tower."

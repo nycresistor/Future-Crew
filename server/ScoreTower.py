@@ -298,6 +298,10 @@ def init(serialport):
 	strip.connect(serialport)
 	print "Initialized strip"
 
+def shutdown():
+        if strip:
+                strip.draw([0]*(strip_length*image_width))
+
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################
 
@@ -311,6 +315,8 @@ if __name__ == "__main__":
 	(options, args) = parser.parse_args()
 	strip_length = options.strip_length
 	init(options.serial_port)
-
-
+        try:
+                attract()
+        finally:
+                shutdown()
 

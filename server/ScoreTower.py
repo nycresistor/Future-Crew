@@ -154,7 +154,7 @@ def session_begin():
        	strip.draw(data)
 
 # Make strip blink red if consoles sends a miss
-def scoretower_miss(console, score):
+def game_miss(console, score):
 	if not strip:
 		return
 	console = match_console(console)
@@ -191,7 +191,7 @@ def scoretower_miss(console, score):
 
 # Make strip blink white if consoles sends a hit
 #def hit():
-def scoretower_hit(console, score):
+def game_hit(console, score):
 	if not strip:
 		return
 	console = match_console(console)
@@ -227,7 +227,7 @@ def scoretower_hit(console, score):
 
 
 # Make all strips blink red if servers declares game is lost
-def scoretower_lost():
+def session_lost():
 	if not strip:
 		return
 	k = 0
@@ -257,7 +257,7 @@ def scoretower_lost():
 	attract()
 
 # Make all strips blink white if servers declare game is won
-def scoretower_won():
+def session_won():
 	if not strip:
 		return
 	k = 0

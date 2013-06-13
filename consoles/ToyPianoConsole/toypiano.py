@@ -167,9 +167,10 @@ class LCDMessageSlot(MessageSlot):
 		super(LCDMessageSlot,self).__init__()
 	def on_message(self,text):
 		if text:
+			self.lcd.cls()
 			self.lcd.lcdprintln(text)
 		else:
-			self.lcd.lcdprintln("cleared!")
+			self.lcd.cls()
 
 
 

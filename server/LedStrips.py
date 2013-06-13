@@ -91,16 +91,18 @@ class LedStrips:
 		for x in range(0, len(s)/64):
 			t = s[64 * x : (64 * x) + 64]
 			self.ser.write(t)
-		output_time = time.time() - output_start_time
+                # Turn off 'profiling' for now
+                if False:
+                        output_time = time.time() - output_start_time
 
-		self.format_time_total += format_time
-		self.frame_count += 1
+                        self.format_time_total += format_time
+                        self.frame_count += 1
 
-		if self.frame_count > 30:
-			average_time = self.format_time_total/self.frame_count
-			self.frame_count = 0
-			self.format_time_total = 0
-			print average_time
+                        if self.frame_count > 30:
+                                average_time = self.format_time_total/self.frame_count
+                                self.frame_count = 0
+                                self.format_time_total = 0
+                                print average_time
 
 	def flip(self):
 		# TODO: Why does 20 work? it make a'no sense.

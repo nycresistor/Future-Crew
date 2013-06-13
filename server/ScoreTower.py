@@ -20,6 +20,26 @@ def match_console(console):
 #color_black = chr(0) + chr(0) + chr(0)
 #color_light_blue = chr(0) + chr(5) + chr(0)
 
+attract_pattern = [
+        0,0,0,       #black
+        0,5,0,       #light blue
+        0,10,5,      #light blue
+        5,20,5,      #light blue
+        10,50,5,     #blue
+        10,60,10,    #light white
+        20,80,20,    #light white
+        20,100,60,   #light white
+        50,150,100,  #white
+        20,100,60,   #light white
+        20,80,20,    #light white
+        10,60,10,    #light white
+        10,50,5,     #blue
+        5,20,5,      #light blue
+        0,10,5,      #light blue
+        0,5,0,       #light blue
+        0,0,0,       #black
+]
+
 def attract():
         "Make a lovely wave pattern"
 	if not strip:
@@ -28,96 +48,13 @@ def attract():
 	#j = 0 				# flow in
 	j = strip_length 	# flow out
 	k = 0
+        patt_len = len(attract_pattern)/3
 	while True:
-        	data = ''
+        	data = []
         	for row in range(0, strip_length):
                 	for col in range(0, image_width):
-				# Every third one should be a diff color
-			#black
-                        	if ((row+j)%15 == 0):
-                                	data += chr(0) # R
-                                	data += chr(0) # G
-                                	data += chr(0) # B
-			#light blue
-                        	if ((row+j)%15 == 1):
-                                	data += chr(0) # R
-                                	data += chr(5) # G
-                                	data += chr(0) # B
-			#light blue
-                        	if ((row+j)%15 == 2):
-                                	data += chr(0) # R
-                                	data += chr(10) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 3):
-                                	data += chr(5) # R
-                                	data += chr(20) # G
-                                	data += chr(5) # B
-			#blue
-                        	if ((row+j)%15 == 4):
-                                	data += chr(10) # R
-                                	data += chr(50) # G
-                                	data += chr(5) # B
-			#light white
-                        	if ((row+j)%15 == 5):
-                                	data += chr(10) # R
-                                	data += chr(60) # G
-                                	data += chr(10) # B
-			#light white
-                        	if ((row+j)%15 == 6):
-                                	data += chr(20) # R
-                                	data += chr(80) # G
-                                	data += chr(20) # B
-			#light white
-                        	if ((row+j)%15 == 7):
-                                	data += chr(20) # R
-                                	data += chr(100) # G
-                                	data += chr(60) # B
-			#white
-                        	if ((row+j)%15 == 8):
-                                	data += chr(50) # R
-                                	data += chr(150) # G
-                                	data += chr(100) # B
-			#light white
-                        	if ((row+j)%15 == 9):
-                                	data += chr(20) # R
-                                	data += chr(100) # G
-                                	data += chr(60) # B
-			#light white
-                        	if ((row+j)%15 == 10):
-                                	data += chr(20) # R
-                                	data += chr(80) # G
-                                	data += chr(20) # B
-			#light white
-                        	if ((row+j)%15 == 11):
-                                	data += chr(10) # R
-                                	data += chr(60) # G
-                                	data += chr(10) # B
-			#blue
-                        	if ((row+j)%15 == 12):
-                                	data += chr(10) # R
-                                	data += chr(50) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 13):
-                                	data += chr(5) # R
-                                	data += chr(20) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 14):
-                                	data += chr(0) # R
-                                	data += chr(10) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 15):
-                                	data += chr(0) # R
-                                	data += chr(5) # G
-                                	data += chr(0) # B
-			#black
-                        	if ((row+j)%15 == 16):
-                                	data += chr(0) # R
-                                	data += chr(0) # G
-                                	data += chr(0) # B
+                                start = ((row+j)%patt_len) * 3
+                                data += attract_pattern[start:start+3]
         	#i = (i+1)%20
         	i = (i+1)%2
 		# increment j after 20 iterations
@@ -127,8 +64,8 @@ def attract():
                 	j = (j-1)%255 	# flow out
 			if j == -1:
 				j = strip_length
-	
         	strip.draw(data)
+                time.sleep(0.03)
 				
 
 # When a session starts, make a scorebar
@@ -285,7 +222,7 @@ def session_won():
 		strip.draw(data)
 		time.sleep(.3)
 		k = k + 1
-
+                
 	attract() 	# Return to idle/attract mode
 
 strip_length = 160

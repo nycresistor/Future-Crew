@@ -4,17 +4,15 @@ import array
 import time
 import serial
 
-def match_console(console):
-	if console == 'ToyPianoClient':
-		console = 0
-	if console == 'PatchConsole':
-		console = 1
-	if console == 'VidEditConsole':
-		console = 2
-	if console == 'TeletypeConsole':
-		console = 3
+console_map = {
+        'ToyPianoClient':0,
+        'PatchConsole':1,
+        'VidEditConsole':2,
+        'TeletypeConsole':3
+}
 
-	return console
+def match_console(console):
+	return console_map[console]
 
 ######################################################
 #### Strip pattern control functions (\/ below \/) ###
@@ -22,8 +20,8 @@ def match_console(console):
 #color_black = chr(0) + chr(0) + chr(0)
 #color_light_blue = chr(0) + chr(5) + chr(0)
 
-# Make a lovely wave pattern 
 def attract():
+        "Make a lovely wave pattern"
 	if not strip:
 		return
 	i = 0
@@ -134,7 +132,7 @@ def attract():
 				
 
 # When a session starts, make a scorebar
-def scoretower_begin():
+def session_begin():
 	if not strip:
 		print "no strip available"
 		return

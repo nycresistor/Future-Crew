@@ -136,6 +136,7 @@ def attract():
 # When a session starts, make a scorebar
 def scoretower_begin():
 	if not strip:
+		print "no strip available"
 		return
 	# A score of '0' will be indicated by a bar of 20 LED pixels
 	# it will go up or down as the score changes
@@ -294,8 +295,10 @@ strip = None
 image_width = 8 # width of the picture
 
 def init(serialport):
+	global strip
 	strip=LedStrips.LedStrips(image_width,0)
 	strip.connect(serialport)
+	print "Initialized strip"
 
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################

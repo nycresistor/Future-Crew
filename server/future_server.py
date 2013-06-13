@@ -5,6 +5,7 @@ import json
 import time
 import random
 from ScoreTower import scoretower_begin, scoretower_won, scoretower_lost, scoretower_hit, scoretower_miss
+from ScoreTower import init as tower_init
 from os import getenv
 
 gpio_avail = True
@@ -274,6 +275,11 @@ def heartbeat():
                 session.abort()
 
 if __name__ == "__main__":
+    try:
+        #tower_init('/dev/ttyACM0')
+        pass
+    except:
+        print "Could not contact LED tower."
     if gpio_avail:
         print "Scanning GPIO start/abort buttons."
         GPIO.setmode(GPIO.BCM)

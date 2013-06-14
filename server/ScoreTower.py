@@ -164,7 +164,7 @@ def game_hit(console, score):
 	score = score + 20
         data = ''
 	# retain the score bar
-	for row in range(0, score)
+	for row in range(0, score):
 		for col in range( 0, image_width):
 			data += chr(75)	
 			data += chr(75)	

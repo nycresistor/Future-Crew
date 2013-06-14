@@ -280,7 +280,7 @@ if __name__ == "__main__":
         import glob
         ports = glob.glob('/dev/ttyACM*')
         tower.init(ports[0])
-        pass
+        tower.queue_attract()
     except:
         print "Could not contact LED tower."
     if gpio_avail:

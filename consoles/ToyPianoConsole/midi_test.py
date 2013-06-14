@@ -2,6 +2,7 @@
 import pygame
 import pygame.midi
 import pygame.mixer  # sound output
+import time
 
 
 class ToyPianoConsole:
@@ -12,17 +13,18 @@ class ToyPianoConsole:
 
         pygame.mixer.init()
 
-        self.whichChord = whichChord
+        self.correctChord = self.getMajorChordSequence(whichChord) 
 
     def get_tones(self):
-        message = self.controller.midi.read(3)
-        print message
-        chord = [message[0][0][1], message[0][1][1], message[0][2][1]]
-        print chord
-        if (self.matchChords(self.getMajorChordSequence(self.whichChord), message[0][0][1], 'octave')):
-            print "yes"
-        else:
-            print "no"
+        if(self.midi.poll()):
+            message = self.midi.read(3)
+                       
+            if len(message) == len(self.correctChord):
+                chord = [message[0][0][1] , message[1][0][1], message[2][0][1]]
+                if (self.matchChords(self.correctChord, chord)):
+                    print "yes"
+                else:
+                    print "no"
 
     def getMajorChordSequence(self, whichChord):
         chord_sequence = [whichChord, whichChord+4, whichChord+7]
@@ -33,16 +35,16 @@ class ToyPianoConsole:
         return chord_sequence
 
     def matchChords(self, list1, list2):
-        if len(list1) == len(list2):
-            return sorted(list1) == sorted(list2)
-        else:
-            return False     
+        for i in range(0,len(list2)):
+            list2[i] = list2[i] % 12
+        return sorted(list1) == sorted(list2)
 
 if __name__=="__main__":
 
-    piano = ToyPianoConsole(1)
+    piano = ToyPianoConsole(0)
+    print "reading notes"
     while(1):
        piano.get_tones()
-       sleep(1)
+       time.sleep(1)
 
 

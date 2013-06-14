@@ -50,17 +50,21 @@ attract_pattern = [
 #        0,0,0,       #black
 ]
 
+strip_length = 160
+strip_count = 8
+strip = None
+
 # intialize 'compiled' attract pattern
 compiled_attract = []
 def make_frame(offset):
-        frame = ''
+        frame = [] #array.array('B',compiled_attract)
         for row in range(0, 160 + len(attract_pattern)/3):
-                for col in range(0, 8):
+                for col in range(0, strip_count):
                         start = ((row+offset)%(len(attract_pattern)/3))*3
                         frame += attract_pattern[start:start+3]
         return strip.compile(frame)
 
-compiled_attract=array.array('B',compiled_attract)
+#compiled_attract=array.array('B',compiled_attract)
 
 
 attract_j = 0
@@ -80,13 +84,13 @@ def attract():
                         global mode
                         global attract_j
                         while mode == 'attract':
-                                #start = (attract_j % patt_len)*image_width*3
-                                #bytelen = strip_length*image_width*3
+                                #start = (attract_j % patt_len)*strip_count*3
+                                #bytelen = strip_length*strip_count*3
                                 strip.fast_draw(compiled_attract[attract_j])
                                 attract_j -= 1 	# flow out
                                 if attract_j == -1:
                                         attract_j += patt_len
-                                time.sleep(0.04)
+                                time.sleep(0.02)
         at = AttractThread()
         at.start()
 
@@ -100,12 +104,12 @@ def session_begin():
 	score = 20
 	data = ''
 	for row in range(0, score):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
 	for row in range(score+1, strip_length):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(0)	
 			data += chr(0)	
 			data += chr(0)	
@@ -121,13 +125,13 @@ def game_miss(console, score):
         data = ''
 	# retain the score bar
 	for row in range(0, score):
-		for col in range( 0, image_width):
+		for col in range( 0, strip_count):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
 	# above the score tower, blink the console with the miss
         for row in range(score, strip_length):
-                for col in range(0, image_width):
+                for col in range(0, strip_count):
                         if col == console:
                                 data += chr(255)
                                 data += chr(0)
@@ -143,12 +147,12 @@ def game_miss(console, score):
 	# Update score tower
 	data = ''
 	for row in range(0, score):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
 	for row in range(score, strip_length):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(0)	
 			data += chr(0)	
 			data += chr(0)	
@@ -165,13 +169,13 @@ def game_hit(console, score):
         data = ''
 	# retain the score bar
 	for row in range(0, score):
-		for col in range( 0, image_width):
+		for col in range( 0, strip_count):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
 	# above the score bar, blink the console with the hit
         for row in range(score, strip_length):
-                for col in range(0, image_width):
+                for col in range(0, strip_count):
                         if col == console:
                                 data += chr(255)
                                 data += chr(255)
@@ -187,12 +191,12 @@ def game_hit(console, score):
 	# Update score tower
 	data = ''
 	for row in range(0, score):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
 	for row in range(score, strip_length):
-		for col in range(0, image_width):
+		for col in range(0, strip_count):
 			data += chr(0)	
 			data += chr(0)	
 			data += chr(0)	
@@ -207,7 +211,7 @@ def session_lost():
 	while k < 6:
 		data = ''
 		for row in range(0, strip_length):
-			for col in range(0, image_width):
+			for col in range(0, strip_count):
 				data += chr(255)
 				data += chr(0)
 				data += chr(0)
@@ -217,7 +221,7 @@ def session_lost():
 
 		data = ''
 		for row in range(0, strip_length):
-			for col in range(0, image_width):
+			for col in range(0, strip_count):
 				data += chr(0)
 				data += chr(0)
 				data += chr(0)
@@ -236,7 +240,7 @@ def session_won():
 	while k < 6: 	# blink 5 times
 		data = ''
 		for row in range(0, strip_length):
-			for col in range(0, image_width):
+			for col in range(0, strip_count):
 				# blink on
 				data += chr(75)
 				data += chr(75)
@@ -247,7 +251,7 @@ def session_won():
 
 		data = ''
 		for row in range(0, strip_length):
-			for col in range(0, image_width):
+			for col in range(0, strip_count):
 				# blink off
 				data += chr(0)
 				data += chr(0)
@@ -259,9 +263,6 @@ def session_won():
                 
 	queue_attract() 	# Return to idle/attract mode
 
-strip_length = 160
-strip = None
-image_width = 8 # width of the picture
 
 lightThread = None
 
@@ -326,7 +327,7 @@ def stop():
 
 def init(serialport):
 	global strip
-	strip=LedStrips.LedStrips(image_width,0)
+	strip=LedStrips.LedStrips(strip_count,0)
 	strip.connect(serialport)
 	print "Initialized strip"
         TowerThread().start() 
@@ -334,7 +335,7 @@ def init(serialport):
 def shutdown():
         stop()
         if strip:
-                strip.draw([0]*(strip_length*image_width*3))
+                strip.draw([0]*(strip_length*strip_count*3))
 
 
 #### Strip pattern control functions (/\ above /\) ###

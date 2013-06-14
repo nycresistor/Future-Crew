@@ -82,6 +82,7 @@ class LedStrips:
 		for x in range(0, len(data)/64):
 			t = data[64 * x : (64 * x) + 64]
 			self.ser.write(t)
+		self.flip()
 
 	def load_data(self, data):
 		"""

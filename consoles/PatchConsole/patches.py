@@ -1,12 +1,12 @@
 left_patches = {
-'11': 'red frombulator',	# L 1,1
-'12': 'blue frombulator',	# L 1,2
-'13': 'green frombulator',	# L 1,3
-'14': 'black frombulator',	# L 1,4
-'10': 'red tranmogrifier',	# L 2,1
-'0F': 'blue tranmogrifier',	# L 2,2
-'0E': 'green tranmogrifier',	# L 2,3
-'0D': 'black tranmogrifier',	# L 2,4
+'11': '#1 frombulator',		# L 1,1
+'12': '#2 frombulator',		# L 1,2
+'13': '#3 frombulator',		# L 1,3
+'14': '#4 frombulator',		# L 1,4
+'10': '#1 tranmogrifier',	# L 2,1
+'0F': '#2 tranmogrifier',	# L 2,2
+'0E': '#3 tranmogrifier',	# L 2,3
+'0D': '#4 tranmogrifier',	# L 2,4
 }
 
 verb_patches = {
@@ -20,7 +20,7 @@ verb_patches = {
 '18': 'Decimate', # 'Mid32',
 
 '15': 'Reverse', # 'Mid13',
-'16': 'Accent', # 'Mid23',
+'16': 'Purge', # 'Mid23',
 '09': 'Spindle', # 'Mid33',
 
 }

@@ -62,7 +62,7 @@ class PressButtonGame(Game):
     def play_game(self):
 	self.desired = random.choice(teletype_buttons.buttons.keys())
 	print "desired: " + str(self.desired)
-	self.update_message(self.verb(teletype_buttons.buttons[self.desired]))
+	self.update_message(teletype_buttons.buttons[self.desired])
 
         starttime = time.time()
 	

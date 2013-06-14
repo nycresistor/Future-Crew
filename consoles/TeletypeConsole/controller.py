@@ -13,8 +13,10 @@ import teletype_buttons
 class Controller:
     def __init__(self):
 	self.cons = {}
-        self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=1)
+        #self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=1)
+        self.port = serial.Serial("/dev/ttyACM1", timeout=1)
 	self.led_state = -1
+	self.button_map = {}
 	for i in range(0,10):
 		self.port.write(chr(ord('A') + i))
 		time.sleep(0.1)
@@ -45,18 +47,18 @@ class PressButtonGame(Game):
     def __init__(self,c):
         super(PressButtonGame, self).__init__('pressbutton','Press a button')
         self.c = c
+    	self.verbs = [
+	    'Press',
+	    'Push',
+	    'Engage',
+	    'Activate',
+	    'Bonk',
+	    'Enable',
+	]
 
-    verbs = [
-	'Press',
-	'Push',
-	'Engage',
-	'Activate',
-	'Bonk',
-	'Enable',
-    ]
 
-    def verb(x):
-	return random.randomchoice(verbs) + ' ' + x
+    def verb(self,x):
+	return random.choice(self.verbs) + ' ' + x
 
     def play_game(self):
 	self.desired = random.choice(teletype_buttons.buttons.keys())
@@ -66,11 +68,11 @@ class PressButtonGame(Game):
         starttime = time.time()
 	
         while self.is_running() and (time.time()-starttime) < 5.0:
-	    if (self.c.button_map[self.desired] == 0):
+	    if (self.c.button_map.get(self.desired, 0) == 0):
 		continue
 
 	    self.c.port.write(chr(ord('A') + self.desired))
-	    print "Success!"
+	    print "Button Success!"
 	    self.finish(5)
 	    self.c.port.write(chr(ord('a') + self.desired))
 	    return
@@ -110,7 +112,7 @@ if __name__ == '__main__' and len(sys.argv) == 1:
     try:
 	while True:
 	    c.get_buttons()
-	    time.sleep(0.05)
+	    #time.sleep(0.05)
     except:
 	print "except"
 	fc.quit()

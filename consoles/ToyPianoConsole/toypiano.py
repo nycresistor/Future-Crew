@@ -92,7 +92,7 @@ class PlayChords(Game):
     def __init__(self, controller, whichChord, key):
         super(PlayChords, self).__init__(
             'PlayChords'+str(whichChord), 
-            controller.chordName(whichChord, key) + ' ON PIANO!')
+            controller.chordName(whichChord, key) + ' CHORD ON PIANO!')
 
         self.controller = controller
         self.correctChord = self.controller.getChordSequence(whichChord, key) 
@@ -342,7 +342,7 @@ songs = [("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C
 		 ("E-I-E-I-O",       [4, 4, 2, 2, 0]),       # E-I-E-I-O - E E D D C
 		 ("FRERE JACQUES",   [7, 9, 11, 7]),         # Frere Jacques - G A B G
 		 ("TWINKLE TWINKLE", [7, 7, 2, 2]),          # Twinkle Twinkle Little Star - G G D D 
-		 ("ALOUETTE",        [2, 4, 5, 5]),          # Alouette - D E F F
+		 ("ALOUETTE",        [0, 2, 4, 4]),          # Alouette - C D E E 
 		 ("BEETHOVEN",       [9, 9, 9, 5]),          # Beethoven's 5th - A A A F
 		 #("HAPPY BIRTHDAY",  [2, 2, 4, 2, 7, 5]),    # Happy Birthday - D D E D G F
 		]

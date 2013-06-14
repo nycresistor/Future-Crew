@@ -11,7 +11,7 @@ from random import randint
 class Controller:
     def __init__(self):
 	self.cons = {}
-        self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=3)
+        self.port = serial.Serial("/dev/ttyACM0", timeout=3)
 
     def get_patches(self):
         keys = self.port.readline().strip()
@@ -39,7 +39,7 @@ class PatchVerbGame(Game):
 	self.update_message(patches.verb_patches[self.patch_from] + " the " + patches.noun_patches[self.patch_to])
 
         starttime = time.time()
-        while self.is_running() and (time.time()-starttime) < 10.0:
+        while self.is_running() and (time.time()-starttime) < 20.0:
 	    if (self.c.cons.get(self.patch_from,'') != self.patch_to):
 		continue
 

@@ -1,14 +1,14 @@
 buttons = {
-'0': 'RESET',
-'1': 'push key punch',
-'2': 'set to OPTIMA',
-'3': 'spend a pound',
-'4': 'LIMIT MINDER',
-'5': 'engage videoscan',
-'6': 'set to null',
-'7': 'quote it',
-'8': 'go to WARP SPEED',
-'9': 'TRANSMIT',
+9: 'RESET',
+8: 'push key punch',
+7: 'set to OPTIMA',
+6: 'spend a pound',
+5: 'LIMIT MINDER',
+4: 'engage videoscan',
+3: 'set to null',
+2: 'quote it',
+1: 'go to WARP SPEED',
+0: 'TRANSMIT',
 
 };
 

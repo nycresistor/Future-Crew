@@ -1,6 +1,6 @@
 import LedStrips
 import optparse
-import array
+from array import array
 import time
 import serial
 import threading
@@ -57,15 +57,20 @@ strip = None
 # intialize 'compiled' attract pattern
 compiled_attract = []
 def make_frame(offset):
-        frame = [] #array.array('B',compiled_attract)
+        frame = []
         for row in range(0, 160 + len(attract_pattern)/3):
                 for col in range(0, strip_count):
                         start = ((row+offset)%(len(attract_pattern)/3))*3
                         frame += attract_pattern[start:start+3]
         return strip.compile(frame)
 
-#compiled_attract=array.array('B',compiled_attract)
 
+redpat = array('B',[0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+		    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+		    0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0]) * strip_length
+clearpat = array('B',[0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+		      0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
+		      0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0]) * strip_length
 
 attract_j = 0
 def attract():
@@ -208,26 +213,27 @@ def session_lost():
 	if not strip:
 		return
 	k = 0
+	# directly create compiled representations:
+	# compiled rep is GRB, each preceded by a 0xff
+
 	while k < 6:
-		data = ''
-		for row in range(0, strip_length):
-			for col in range(0, strip_count):
-				data += chr(255)
-				data += chr(0)
-				data += chr(0)
+		#data = ''
+		#for row in range(0, strip_length):
+		#	for col in range(0, strip_count):
+		#		data += chr(255)
+		#		data += chr(0)
+		#		data += chr(0)
+		strip.fast_draw(redpat)
+		time.sleep(.2)
 
-		strip.draw(data)
-		time.sleep(.3)
-
-		data = ''
-		for row in range(0, strip_length):
-			for col in range(0, strip_count):
-				data += chr(0)
-				data += chr(0)
-				data += chr(0)
-
-		strip.draw(data)
-		time.sleep(.3)
+		#data = ''
+		#for row in range(0, strip_length):
+		#	for col in range(0, strip_count):
+		#		data += chr(0)
+		#		data += chr(0)
+		#		data += chr(0)
+		strip.fast_draw(clearpat)
+		time.sleep(.2)
 		k = k + 1
 
 	queue_attract()

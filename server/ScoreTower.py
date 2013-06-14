@@ -68,6 +68,9 @@ def make_frame(offset):
 redpat = array('B',[0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
 		    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 		    0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0]) * strip_length
+whitepat = array('B',[0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
+		      0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
+		      0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b]) * strip_length
 clearpat = array('B',[0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
 		      0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,
 		      0xff,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0,  0x0]) * strip_length
@@ -121,47 +124,33 @@ def session_begin():
 			
        	strip.draw(data)
 
+scorepixel = array('B',[0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
+			0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
+			0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b])
+darkpixel = array('B',[0xff,0,0,0,0,0,0,0,
+		       0xff,0,0,0,0,0,0,0,
+		       0xff,0,0,0,0,0,0,0])
+
 # Make strip blink red if consoles sends a miss
 def game_miss(console, score):
 	if not strip:
 		return
 	console = match_console(console)
 	score = score + 20
-        data = ''
-	# retain the score bar
-	for row in range(0, score):
-		for col in range( 0, strip_count):
-			data += chr(75)	
-			data += chr(75)	
-			data += chr(75)	
-	# above the score tower, blink the console with the miss
-        for row in range(score, strip_length):
-                for col in range(0, strip_count):
-                        if col == console:
-                                data += chr(255)
-                                data += chr(0)
-                                data += chr(0)
-                        else:
-                                data += chr(0)
-                                data += chr(0)
-                                data += chr(0)
 
-        strip.draw(data)
+	c = 1 << console
+	consolepixel = array('B',[0xff,0,0,0,0,0,0,0,
+				  0xff,c,c,c,c,c,c,c,
+				  0xff,0,0,0,0,0,0,0])
+
+
+	data = (scorepixel * score) + (consolepixel * (strip_length - score))
+        strip.fast_draw(data)
         # Wait.
         time.sleep(.2)
 	# Update score tower
-	data = ''
-	for row in range(0, score):
-		for col in range(0, strip_count):
-			data += chr(75)	
-			data += chr(75)	
-			data += chr(75)	
-	for row in range(score, strip_length):
-		for col in range(0, strip_count):
-			data += chr(0)	
-			data += chr(0)	
-			data += chr(0)	
-        strip.draw(data)
+	data = (scorepixel * score) + (darkpixel * (strip_length - score))
+        strip.fast_draw(data)
 
 
 # Make strip blink white if console sends a hit
@@ -171,42 +160,22 @@ def game_hit(console, score):
 		return
 	console = match_console(console)
 	score = score + 20
-        data = ''
-	# retain the score bar
-	for row in range(0, score):
-		for col in range( 0, strip_count):
-			data += chr(75)	
-			data += chr(75)	
-			data += chr(75)	
-	# above the score bar, blink the console with the hit
-        for row in range(score, strip_length):
-                for col in range(0, strip_count):
-                        if col == console:
-                                data += chr(255)
-                                data += chr(255)
-                                data += chr(255)
-                        else:
-				data += chr(0)	
-				data += chr(0)	
-				data += chr(0)	
 
-        strip.draw(data)
+
+
+	c = 1 << console
+	consolepixel = array('B',[0xff,c,c,c,c,c,c,c,
+				  0xff,c,c,c,c,c,c,c,
+				  0xff,c,c,c,c,c,c,c])
+
+
+	data = (scorepixel * score) + (consolepixel * (strip_length - score))
+        strip.fast_draw(data)
         # Wait.
         time.sleep(.2)
 	# Update score tower
-	data = ''
-	for row in range(0, score):
-		for col in range(0, strip_count):
-			data += chr(75)	
-			data += chr(75)	
-			data += chr(75)	
-	for row in range(score, strip_length):
-		for col in range(0, strip_count):
-			data += chr(0)	
-			data += chr(0)	
-			data += chr(0)	
-        strip.draw(data)
-
+	data = (scorepixel * score) + (darkpixel * (strip_length - score))
+        strip.fast_draw(data)
 
 # Make all strips blink red if servers declares game is lost
 def session_lost():
@@ -217,25 +186,11 @@ def session_lost():
 	# compiled rep is GRB, each preceded by a 0xff
 
 	while k < 6:
-		#data = ''
-		#for row in range(0, strip_length):
-		#	for col in range(0, strip_count):
-		#		data += chr(255)
-		#		data += chr(0)
-		#		data += chr(0)
 		strip.fast_draw(redpat)
-		time.sleep(.2)
-
-		#data = ''
-		#for row in range(0, strip_length):
-		#	for col in range(0, strip_count):
-		#		data += chr(0)
-		#		data += chr(0)
-		#		data += chr(0)
+		time.sleep(.3)
 		strip.fast_draw(clearpat)
-		time.sleep(.2)
+		time.sleep(.3)
 		k = k + 1
-
 	queue_attract()
 
 # Make all strips blink white if servers declare game is won
@@ -244,29 +199,11 @@ def session_won():
 		return
 	k = 0
 	while k < 6: 	# blink 5 times
-		data = ''
-		for row in range(0, strip_length):
-			for col in range(0, strip_count):
-				# blink on
-				data += chr(75)
-				data += chr(75)
-				data += chr(75)
-
-		strip.draw(data)
+		strip.fast_draw(whitepat)
 		time.sleep(.3)
-
-		data = ''
-		for row in range(0, strip_length):
-			for col in range(0, strip_count):
-				# blink off
-				data += chr(0)
-				data += chr(0)
-				data += chr(0)
-
-		strip.draw(data)
+		strip.fast_draw(clearpat)
 		time.sleep(.3)
 		k = k + 1
-                
 	queue_attract() 	# Return to idle/attract mode
 
 

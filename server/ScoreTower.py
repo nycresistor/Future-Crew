@@ -112,6 +112,13 @@ def game_miss(console, score):
 	console = match_console(console)
 	score = score + 20
         data = ''
+	# retain the score bar
+	for row in range(0, score)
+		for col in range( 0, image_width):
+			data += chr(75)	
+			data += chr(75)	
+			data += chr(75)	
+	# above the score tower, blink the console with the miss
         for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
@@ -141,7 +148,7 @@ def game_miss(console, score):
         strip.draw(data)
 
 
-# Make strip blink white if consoles sends a hit
+# Make strip blink white if console sends a hit
 #def hit():
 def game_hit(console, score):
 	if not strip:
@@ -149,6 +156,13 @@ def game_hit(console, score):
 	console = match_console(console)
 	score = score + 20
         data = ''
+	# retain the score bar
+	for row in range(0, score)
+		for col in range( 0, image_width):
+			data += chr(75)	
+			data += chr(75)	
+			data += chr(75)	
+	# above the score bar, blink the console with the hit
         for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
@@ -156,9 +170,9 @@ def game_hit(console, score):
                                 data += chr(255)
                                 data += chr(255)
                         else:
-                                data += chr(0)
-                                data += chr(0)
-                                data += chr(0)
+				data += chr(0)	
+				data += chr(0)	
+				data += chr(0)	
 
         strip.draw(data)
         # Wait.

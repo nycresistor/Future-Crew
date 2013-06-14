@@ -88,11 +88,12 @@ class ToggleSwitchGame(Game):
         self.c = c
 
     # Should randomly select from a range of choices
+    # be sure that it is the opposite of the current value
     def operation(self,val):
 	if (val):
-		return "Engage"
-	else:
 		return "Disable"
+	else:
+		return "Engage"
 
     def play_game(self):
 	self.sw_num = randint(0,6)

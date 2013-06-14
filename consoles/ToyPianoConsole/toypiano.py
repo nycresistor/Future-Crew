@@ -87,7 +87,83 @@ class TinySongGame(Game):
 			if ((time.time()-starttime) > self.timeLimit + 0.5):
 				self.finish(0)		
 		
-	
+
+class PlayChords(Game):
+    def __init__(self, controller, whichChord, key):
+        super(PlayMajorChords, self).__init__(
+            'PlayChords'+str(whichChord), 
+            controller.chordName(whichChord, key) + ' ON PIANO!')
+
+        self.controller = controller
+        self.correctChord = self.controller.getChordSequence(whichChord, key) 
+
+        self.timeLimit = 8.0
+        self.warningTime = 4.0
+
+        self.GPO_BAD = 1
+        self.GPO_GOOD = 3
+
+        self.c.lcd.backlight(True)
+        self.c.lcd.gpo(self.GPO_BAD,False)
+        self.c.lcd.gpo(self.GPO_GOOD,False)
+
+
+    def play_game(self):
+        starttime = time.time()
+        mistakes = 0
+        lost = False
+
+        self.controller.flushMidi() # make sure there's no old notes queued up
+        self.controller.lcd.backlight(True) # make sure LCD light is on and not blinking
+        self.controller.lcd.gpo(self.GPO_BAD,False)
+        #self.c.lcd.gpo(self.GPO_GOOD,False) --- DON'T clear the GOOD lamp, let it keep blinking from previous success for a little while
+        #self.c.lcd.brightness(128)
+
+        while self.is_running():
+            if not self.wait(0.05):
+                return
+                
+            if (self.controller.midi.poll()):
+                you_lost = false
+                message = self.controller.midi.read(3)
+                if len(message) == len(self.correctChord):
+                    chord = [message[0][0][1] , message[1][0][1], message[2][0][1]]
+                    if (self.controller.matchChords(self.correctChord, chord)):
+                        print 'YES'
+                        self.controller.sound('yes')
+                        self.controller.flushMidi()
+                        #self.c.lcd.brightness(255)
+                        self.controller.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
+                        self.finish(1)
+                    else:
+                        you_lost = true
+                else:
+                    you_lost = true
+                
+                if you_lost == true:
+                    print 'NO'
+                    self.controller.sound('no')
+                    #self.c.lcd.blink(0.1, 0.35)
+                    self.controller.lcd.gpoBlink(1, 0.15, 0.4)
+                    mistakes += 1
+                    self.controller.flushMidi()
+                    if (mistakes > 3): self.finish(0)
+
+                    
+            if ((time.time()-starttime) > self.warningTime):
+                #self.c.lcd.blink(0.1)
+                self.controller.lcd.gpoBlink(self.GPO_BAD, 0.1)
+                    
+            if (not lost and (time.time()-starttime) > self.timeLimit):
+                print 'OUT OF TIME'
+                lost = True
+                self.controller.sound('timeout')
+                sys.stdout.flush()
+                #self.c.lcd.backlight(False)
+                self.controller.lcd.gpo(self.GPO_BAD,False)
+                
+            if ((time.time()-starttime) > self.timeLimit + 0.5):
+                self.finish(0)
 
 class PlayOneNote(Game):
 	def __init__(self, controller, whichNote):
@@ -207,12 +283,26 @@ class ToyPianoConsole:
 			v = 'terse'
 		
 		return self.noteNames[v][accidentals][whichNote]
-	
-	
+
+	def chordName(self, whichNote, key='both', accidentals='flats', verbose=False):
+		note = noteName(whichNote, accidentals, verbose)
+		if (major=='both'):
+			if (random() > 0.5): key='MAJOR'
+			else: key='MINOR'
+		
+		return (note + " " + key)
+
+		
 	# play a sound by key
 	def sound(self, key):
 		if (self.sounds[key]): self.sounds[key].play()
 		
+	def getChordSequence(self, whichChord, key):
+		if key == 'MAJOR':
+			chord_sequence = [whichChord, whichChord+4, whichChord+7]
+		else: 
+			chord_sequence = [whichChord, whichChord+3, whichChord+7]
+
 	
 	# check if note numbers match
 	#	 options: exact, octave (match % 12)
@@ -220,6 +310,11 @@ class ToyPianoConsole:
 		if (options=='octave'): return ((n1 % 12) == (n2 % 12))
 		elif (options=='exact'): return (n1 == n2)
 		else: return False
+
+	def matchChords(self, list1, list2):
+		for i in range(0,len(list2)):
+			list2[i] = list2[i] % 12
+		return sorted(list1) == sorted(list2)
 
 
 
@@ -258,9 +353,16 @@ songs = [("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C
 		 #("HAPPY BIRTHDAY",  [2, 2, 4, 2, 7, 5]),    # Happy Birthday - D D E D G F
 		]
 
+chords = [  [0, 'MAJOR'],
+            [3, 'MAJOR'],
+            [9, 'MAJOR'],
+            [2, 'MINOR'],
+            [7, 'MINOR'],
+            [5, 'MINOR'] ] 
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
-fc.available_games = [PlayOneNote(controller, i) for i in controller.allKeys] + [TinySongGame(controller, i[0], i[1]) for i in songs]
+fc.available_games = [PlayOneNote(controller, i) for i in controller.allKeys] + [TinySongGame(controller, i[0], i[1]) for i in songs] + [PlayChords(controller, i[0], i[1]) for i in chords]
+     
 fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 
 fc.start()

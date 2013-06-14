@@ -11,7 +11,7 @@ from random import randint
 class Controller:
     def __init__(self):
 	self.cons = {}
-        self.port = serial.Serial("/dev/tty.usbmodem480", timeout=3)
+        self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=3)
 
     def get_patches(self):
         keys = self.port.readline().strip()
@@ -19,7 +19,7 @@ class Controller:
 	    return
 	#print keys
 	cons = keys.split(' ')
-	self.switches = int(cons[0], 16)
+	self.switches = int(cons[0], 16) & ~0x80
 	con_map = {}
 	for con in cons[1:]:
 		fromto = con.split(':')
@@ -28,21 +28,54 @@ class Controller:
 	self.cons = con_map
         return
 
-class PatchAtoBGame(Game):
+class PatchVerbGame(Game):
     def __init__(self,c):
-        super(PatchAtoBGame, self).__init__('a2b','Patch A to B')
+        super(PatchVerbGame, self).__init__('a2b','Patch A to B')
         self.c = c
-	self.patch_from = '1A'
-	self.patch_to = '1F'
 
     def play_game(self):
-	while 1:
+	self.patch_from = random.choice(patches.verb_patches.keys())
+	self.patch_to = random.choice(patches.noun_patches.keys())
+	self.update_message(patches.verb_patches[self.patch_from] + " the " + patches.noun_patches[self.patch_to])
+
+        starttime = time.time()
+        while self.is_running() and (time.time()-starttime) < 10.0:
 	    if (self.c.cons.get(self.patch_from,'') != self.patch_to):
 		continue
 
 	    print "Success!"
 	    self.finish(5)
 	    return
+	print "Failure!"
+	self.finish(-5)
+
+    def on_start(self):
+        t = threading.Thread(target = self.play_game)
+        self.thread = t
+        t.start()
+
+#
+# Simple game to switch off all the blender modes
+#
+class AllOffGame(Game):
+    def __init__(self,c):
+        super(AllOffGame, self).__init__('alloff','Disable all blender switches!')
+        self.c = c
+
+    def play_game(self):
+	if (self.c.switches == 0):
+		self.finish(0)
+		return
+        starttime = time.time()
+        while self.is_running() and (time.time()-starttime) < 10.0:
+	    if (self.c.switches != 0):
+		continue
+
+	    print "All switches off!"
+	    self.finish(5)
+	    return
+	print "Failure!"
+	self.finish(-5)
 
     def on_start(self):
         t = threading.Thread(target = self.play_game)
@@ -54,13 +87,22 @@ class ToggleSwitchGame(Game):
         super(ToggleSwitchGame, self).__init__('sw','Toggle switch')
         self.c = c
 
+    # Should randomly select from a range of choices
+    def operation(self,val):
+	if (val):
+		return "Engage"
+	else:
+		return "Disable"
+
     def play_game(self):
 	self.sw_num = randint(0,6)
 	self.start_value = self.c.switches & (1 << self.sw_num)
  	sw_name = patches.switches[self.sw_num]
 	print sw_name, ": ", str(self.start_value)
-	self.update_message('Toggle ' + sw_name)
-	while 1:
+	self.update_message(self.operation(self.start_value) + ' ' + sw_name)
+
+        starttime = time.time()
+        while self.is_running() and (time.time()-starttime) < 10.0:
 	    if (self.c.switches & (1 << self.sw_num) == self.start_value):
 		continue
 
@@ -84,8 +126,9 @@ class StdoutSlot(MessageSlot):
 c = Controller()
 
 games = [
-    #PatchAtoBGame(c),
+    PatchVerbGame(c),
     ToggleSwitchGame(c),
+    AllOffGame(c)
 ]
 
 slots = [

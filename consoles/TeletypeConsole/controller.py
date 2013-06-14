@@ -35,11 +35,10 @@ class Controller:
         keys = self.port.readline().strip()
 	if not keys:
 	    return
-	#print keys
-	buttons = keys.split(' ')
+	print keys
 	button_map = {}
-	for b in buttons[1:]:
-		button_map[b] = 1
+	for b in keys.split(' '):
+		button_map[int(b)] = 1
 	self.button_map = button_map
         return
 
@@ -62,7 +61,7 @@ class PressButtonGame(Game):
 
     def play_game(self):
 	self.desired = random.choice(teletype_buttons.buttons.keys())
-	print "desired: " + self.desired
+	print "desired: " + str(self.desired)
 	self.update_message(self.verb(teletype_buttons.buttons[self.desired]))
 
         starttime = time.time()
@@ -112,7 +111,7 @@ if __name__ == '__main__' and len(sys.argv) == 1:
     try:
 	while True:
 	    c.get_buttons()
-	    #time.sleep(0.05)
+	    time.sleep(0.05)
     except:
 	print "except"
 	fc.quit()

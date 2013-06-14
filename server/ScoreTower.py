@@ -52,11 +52,16 @@ attract_pattern = [
 
 # intialize 'compiled' attract pattern
 compiled_attract = []
-for row in range(0, 160 + len(attract_pattern)/3):
-        for col in range(0, 8):
-                start = (row%(len(attract_pattern)/3))*3
-                compiled_attract += attract_pattern[start:start+3]
+def make_frame(offset):
+        frame = ''
+        for row in range(0, 160 + len(attract_pattern)/3):
+                for col in range(0, 8):
+                        start = ((row+offset)%(len(attract_pattern)/3))*3
+                        frame += attract_pattern[start:start+3]
+        return strip.compile(frame)
+
 compiled_attract=array.array('B',compiled_attract)
+
 
 attract_j = 0
 def attract():
@@ -66,16 +71,18 @@ def attract():
 	if not strip:
 		return
         patt_len = len(attract_pattern)/3
-	#j = 0 				# flow in
+        if not compiled_attract:
+                for i in range(patt_len):
+                        compiled_attract.append(make_frame(i))
         mode = 'attract'
         class AttractThread(threading.Thread):
                 def run(self):
                         global mode
                         global attract_j
                         while mode == 'attract':
-                                start = (attract_j % patt_len)*image_width*3
-                                bytelen = strip_length*image_width*3
-                                strip.draw(compiled_attract[start:bytelen+start])
+                                #start = (attract_j % patt_len)*image_width*3
+                                #bytelen = strip_length*image_width*3
+                                strip.fast_draw(compiled_attract[attract_j])
                                 attract_j -= 1 	# flow out
                                 if attract_j == -1:
                                         attract_j += patt_len

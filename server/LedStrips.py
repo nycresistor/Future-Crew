@@ -70,6 +70,19 @@ class LedStrips:
 		self.load_data(data)
 		self.flip()
 
+        def compile(self, data):
+		# for each 'row' in the data, assemble a byte stream for it.
+                s = ''
+		for row in range(0,len(data)/3/self.image_width):
+			start_index = (self.image_width*row + self.offset)*3
+			s += self.RgbRowToStrips(data[start_index:start_index+24])
+                return s
+        
+        def fast_draw(self, data):
+		for x in range(0, len(data)/64):
+			t = data[64 * x : (64 * x) + 64]
+			self.ser.write(t)
+
 	def load_data(self, data):
 		"""
 		Load the next frame into the strips, but don't actually clock it out.

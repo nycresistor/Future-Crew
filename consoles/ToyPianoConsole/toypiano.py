@@ -16,6 +16,78 @@ import pygame.mixer  # sound output
 from random import random
 
 
+class TinySongGame(Game):
+	def __init__(self, controller, song_name, song_notes):
+		super(TinySongGame, self).__init__(
+			'TinySongGame'+song_name, 
+			song_name + ' ON PIANO!')
+
+		self.c = controller
+		self.song_name = song_name
+		self.song_notes = song_notes
+	
+		self.timeLimit = 20.0
+		self.warningTime = 17.0
+		
+		self.GPO_BAD = 1
+		self.GPO_GOOD = 3
+		
+		self.c.lcd.backlight(True)
+		self.c.lcd.gpo(self.GPO_BAD,False)
+		self.c.lcd.gpo(self.GPO_GOOD,False)		
+		
+	def play_game(self):
+		starttime = time.time()
+		mistakes = 0
+		match_idx = 0
+		lost = False
+		
+		self.c.flushMidi() # make sure there's no old notes queued up
+		self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
+		self.c.lcd.gpo(self.GPO_BAD,False)
+		#self.c.lcd.gpo(self.GPO_GOOD,False) --- DON'T clear the GOOD lamp, let it keep blinking from previous success for a little while
+		#self.c.lcd.brightness(128)
+		
+		while self.is_running():
+			if not self.wait(0.05):
+				return
+				
+			if (self.c.midi.poll()):
+				message = self.c.midi.read(1)
+				if (self.c.matchNotes(self.song_notes[match_idx], message[0][0][1], 'octave')):
+					match_idx += 1
+					if match_idx == len(self.song_notes):
+						print 'YES'
+						self.c.sound('yes')
+						self.c.flushMidi()
+						#self.c.lcd.brightness(255)
+						self.c.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
+						self.finish(1)
+				else:
+					print 'NO'
+					self.c.sound('no')
+					#self.c.lcd.blink(0.1, 0.35)
+					self.c.lcd.gpoBlink(1, 0.15, 0.4)
+					mistakes += 1
+					self.c.flushMidi()
+					if (mistakes > 3): self.finish(0)
+					
+			if ((time.time()-starttime) > self.warningTime):
+				#self.c.lcd.blink(0.1)
+				self.c.lcd.gpoBlink(self.GPO_BAD, 0.1)
+					
+			if (not lost and (time.time()-starttime) > self.timeLimit):
+				print 'OUT OF TIME'
+				lost = True
+				self.c.sound('timeout')
+				sys.stdout.flush()
+				#self.c.lcd.backlight(False)
+				self.c.lcd.gpo(self.GPO_BAD,False)
+				
+			if ((time.time()-starttime) > self.timeLimit + 0.5):
+				self.finish(0)		
+		
+	
 
 class PlayOneNote(Game):
 	def __init__(self, controller, whichNote):
@@ -107,6 +179,7 @@ class ToyPianoConsole:
 		self.sounds = dict((n, pygame.mixer.Sound('sounds/'+f)) for (n,f) in self.soundList)
 		
 		self.whiteKeys = [0,2,4,5,7,9,11]
+		self.allKeys = range(0, 12)
 		self.noteNames = {
 			'terse': {
 				'sharps': ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
@@ -176,9 +249,18 @@ class LCDMessageSlot(MessageSlot):
 
 controller = ToyPianoConsole()
 
+songs = [("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C C C D E
+		 ("E-I-E-I-O",       [4, 4, 2, 2, 0]),       # E-I-E-I-O - E E D D C
+		 ("FRERE JACQUES",   [7, 9, 11, 7]),         # Frere Jacques - G A B G
+		 ("TWINKLE TWINKLE", [7, 7, 2, 2]),          # Twinkle Twinkle Little Star - G G D D 
+		 ("ALOUETTE",        [2, 4, 5, 5]),          # Alouette - D E F F
+		 ("BEETHOVEN",       [9, 9, 9, 5]),          # Beethoven's 5th - A A A F
+		 #("HAPPY BIRTHDAY",  [2, 2, 4, 2, 7, 5]),    # Happy Birthday - D D E D G F
+		]
+
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
-fc.available_games = [PlayOneNote(controller, i) for i in controller.whiteKeys]
+fc.available_games = [PlayOneNote(controller, i) for i in controller.allKeys] + [TinySongGame(controller, i[0], i[1]) for i in songs]
 fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 
 fc.start()

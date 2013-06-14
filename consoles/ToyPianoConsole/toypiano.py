@@ -90,7 +90,7 @@ class TinySongGame(Game):
 
 class PlayChords(Game):
     def __init__(self, controller, whichChord, key):
-        super(PlayMajorChords, self).__init__(
+        super(PlayChords, self).__init__(
             'PlayChords'+str(whichChord), 
             controller.chordName(whichChord, key) + ' ON PIANO!')
 
@@ -103,9 +103,9 @@ class PlayChords(Game):
         self.GPO_BAD = 1
         self.GPO_GOOD = 3
 
-        self.c.lcd.backlight(True)
-        self.c.lcd.gpo(self.GPO_BAD,False)
-        self.c.lcd.gpo(self.GPO_GOOD,False)
+        self.controller.lcd.backlight(True)
+        self.controller.lcd.gpo(self.GPO_BAD,False)
+        self.controller.lcd.gpo(self.GPO_GOOD,False)
 
 
     def play_game(self):
@@ -116,15 +116,13 @@ class PlayChords(Game):
         self.controller.flushMidi() # make sure there's no old notes queued up
         self.controller.lcd.backlight(True) # make sure LCD light is on and not blinking
         self.controller.lcd.gpo(self.GPO_BAD,False)
-        #self.c.lcd.gpo(self.GPO_GOOD,False) --- DON'T clear the GOOD lamp, let it keep blinking from previous success for a little while
-        #self.c.lcd.brightness(128)
 
         while self.is_running():
             if not self.wait(0.05):
                 return
                 
             if (self.controller.midi.poll()):
-                you_lost = false
+                you_lost = False
                 message = self.controller.midi.read(3)
                 if len(message) == len(self.correctChord):
                     chord = [message[0][0][1] , message[1][0][1], message[2][0][1]]
@@ -132,18 +130,16 @@ class PlayChords(Game):
                         print 'YES'
                         self.controller.sound('yes')
                         self.controller.flushMidi()
-                        #self.c.lcd.brightness(255)
                         self.controller.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
                         self.finish(1)
                     else:
-                        you_lost = true
+                        you_lost = True
                 else:
-                    you_lost = true
+                    you_lost = True
                 
-                if you_lost == true:
+                if you_lost == True:
                     print 'NO'
                     self.controller.sound('no')
-                    #self.c.lcd.blink(0.1, 0.35)
                     self.controller.lcd.gpoBlink(1, 0.15, 0.4)
                     mistakes += 1
                     self.controller.flushMidi()
@@ -151,7 +147,6 @@ class PlayChords(Game):
 
                     
             if ((time.time()-starttime) > self.warningTime):
-                #self.c.lcd.blink(0.1)
                 self.controller.lcd.gpoBlink(self.GPO_BAD, 0.1)
                     
             if (not lost and (time.time()-starttime) > self.timeLimit):
@@ -159,7 +154,6 @@ class PlayChords(Game):
                 lost = True
                 self.controller.sound('timeout')
                 sys.stdout.flush()
-                #self.c.lcd.backlight(False)
                 self.controller.lcd.gpo(self.GPO_BAD,False)
                 
             if ((time.time()-starttime) > self.timeLimit + 0.5):
@@ -285,8 +279,8 @@ class ToyPianoConsole:
 		return self.noteNames[v][accidentals][whichNote]
 
 	def chordName(self, whichNote, key='both', accidentals='flats', verbose=False):
-		note = noteName(whichNote, accidentals, verbose)
-		if (major=='both'):
+		note = self.noteName(whichNote, accidentals, verbose)
+		if (key=='both'):
 			if (random() > 0.5): key='MAJOR'
 			else: key='MINOR'
 		
@@ -299,10 +293,10 @@ class ToyPianoConsole:
 		
 	def getChordSequence(self, whichChord, key):
 		if key == 'MAJOR':
-			chord_sequence = [whichChord, whichChord+4, whichChord+7]
+			chord_sequence = [whichChord, (whichChord+4) % 12, (whichChord+7) % 12]
 		else: 
-			chord_sequence = [whichChord, whichChord+3, whichChord+7]
-
+			chord_sequence = [whichChord, (whichChord+3) % 12, (whichChord+7) % 12]
+		return chord_sequence
 	
 	# check if note numbers match
 	#	 options: exact, octave (match % 12)
@@ -354,7 +348,7 @@ songs = [("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C
 		]
 
 chords = [  [0, 'MAJOR'],
-            [3, 'MAJOR'],
+            [4, 'MAJOR'],
             [9, 'MAJOR'],
             [2, 'MINOR'],
             [7, 'MINOR'],

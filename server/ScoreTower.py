@@ -3,18 +3,26 @@ import optparse
 import array
 import time
 import serial
+import threading
 
-def match_console(console)
-	if console = 'ToyPianoClient':
-		console = 0
-	if console = 'PatchConsole':
-		console = 1
-	if console = 'VidEditConsole':
-		console = 2
-	if console = 'TeletypeConsole':
-		console = 3
+console_map = {
+        'ToyPianoClient':0,
+        'PatchConsole':1,
+        'VidEditConsole':2,
+        'TeletypeConsole':3
+}
 
-	return console
+def match_console(console):
+	try:
+                return console_map[console]
+        except:
+                return 0
+
+#globals
+running = False
+mode = None
+queue = []
+queueLock = threading.RLock()
 
 ######################################################
 #### Strip pattern control functions (\/ below \/) ###
@@ -22,117 +30,64 @@ def match_console(console)
 #color_black = chr(0) + chr(0) + chr(0)
 #color_light_blue = chr(0) + chr(5) + chr(0)
 
-# Make a lovely wave pattern 
+attract_pattern = [
+        0,0,0,       #black
+        0,5,0,       #light blue
+        0,10,5,      #light blue
+        5,20,5,      #light blue
+        10,50,5,     #blue
+        10,60,10,    #light white
+        20,80,20,    #light white
+        20,100,60,   #light white
+        50,150,100,  #white
+        20,100,60,   #light white
+        20,80,20,    #light white
+        10,60,10,    #light white
+        10,50,5,     #blue
+        5,20,5,      #light blue
+        0,10,5,      #light blue
+#        0,5,0,       #light blue
+#        0,0,0,       #black
+]
+
+# intialize 'compiled' attract pattern
+compiled_attract = []
+for row in range(0, 160 + len(attract_pattern)/3):
+        for col in range(0, 8):
+                start = (row%(len(attract_pattern)/3))*3
+                compiled_attract += attract_pattern[start:start+3]
+compiled_attract=array.array('B',compiled_attract)
+
+attract_j = 0
 def attract():
-	i = 0
+        "Make a lovely wave pattern"
+        global attract_j
+        global mode
+	if not strip:
+		return
+        patt_len = len(attract_pattern)/3
 	#j = 0 				# flow in
-	j = options.strip_length 	# flow out
-	k = 0
-	while True:
-        	data = ''
-        	for row in range(0, options.strip_length):
-                	for col in range(0, image_width):
-				# Every third one should be a diff color
-			#black
-                        	if ((row+j)%15 == 0):
-                                	data += chr(0) # R
-                                	data += chr(0) # G
-                                	data += chr(0) # B
-			#light blue
-                        	if ((row+j)%15 == 1):
-                                	data += chr(0) # R
-                                	data += chr(5) # G
-                                	data += chr(0) # B
-			#light blue
-                        	if ((row+j)%15 == 2):
-                                	data += chr(0) # R
-                                	data += chr(10) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 3):
-                                	data += chr(5) # R
-                                	data += chr(20) # G
-                                	data += chr(5) # B
-			#blue
-                        	if ((row+j)%15 == 4):
-                                	data += chr(10) # R
-                                	data += chr(50) # G
-                                	data += chr(5) # B
-			#light white
-                        	if ((row+j)%15 == 5):
-                                	data += chr(10) # R
-                                	data += chr(60) # G
-                                	data += chr(10) # B
-			#light white
-                        	if ((row+j)%15 == 6):
-                                	data += chr(20) # R
-                                	data += chr(80) # G
-                                	data += chr(20) # B
-			#light white
-                        	if ((row+j)%15 == 7):
-                                	data += chr(20) # R
-                                	data += chr(100) # G
-                                	data += chr(60) # B
-			#white
-                        	if ((row+j)%15 == 8):
-                                	data += chr(50) # R
-                                	data += chr(150) # G
-                                	data += chr(100) # B
-			#light white
-                        	if ((row+j)%15 == 9):
-                                	data += chr(20) # R
-                                	data += chr(100) # G
-                                	data += chr(60) # B
-			#light white
-                        	if ((row+j)%15 == 10):
-                                	data += chr(20) # R
-                                	data += chr(80) # G
-                                	data += chr(20) # B
-			#light white
-                        	if ((row+j)%15 == 11):
-                                	data += chr(10) # R
-                                	data += chr(60) # G
-                                	data += chr(10) # B
-			#blue
-                        	if ((row+j)%15 == 12):
-                                	data += chr(10) # R
-                                	data += chr(50) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 13):
-                                	data += chr(5) # R
-                                	data += chr(20) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 14):
-                                	data += chr(0) # R
-                                	data += chr(10) # G
-                                	data += chr(5) # B
-			#light blue
-                        	if ((row+j)%15 == 15):
-                                	data += chr(0) # R
-                                	data += chr(5) # G
-                                	data += chr(0) # B
-			#black
-                        	if ((row+j)%15 == 16):
-                                	data += chr(0) # R
-                                	data += chr(0) # G
-                                	data += chr(0) # B
-        	#i = (i+1)%20
-        	i = (i+1)%2
-		# increment j after 20 iterations
-        	if i == 0:
-			# count from 0 to 255, and do it again
-                	#j = (j+1)%255  # flow in
-                	j = (j-1)%255 	# flow out
-			if j == -1:
-				j = options.strip_length
-	
-        	strip.draw(data)
-				
+        mode = 'attract'
+        class AttractThread(threading.Thread):
+                def run(self):
+                        global mode
+                        global attract_j
+                        while mode == 'attract':
+                                start = (attract_j % patt_len)*image_width*3
+                                bytelen = strip_length*image_width*3
+                                strip.draw(compiled_attract[start:bytelen+start])
+                                attract_j -= 1 	# flow out
+                                if attract_j == -1:
+                                        attract_j += patt_len
+                                time.sleep(0.04)
+        at = AttractThread()
+        at.start()
 
 # When a session starts, make a scorebar
-def scoretower_begin():
+def session_begin():
+	if not strip:
+		print "no strip available"
+		return
 	# A score of '0' will be indicated by a bar of 20 LED pixels
 	# it will go up or down as the score changes
 	score = 20
@@ -142,7 +97,7 @@ def scoretower_begin():
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score+1, options.strip_length):
+	for row in range(score+1, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -151,11 +106,13 @@ def scoretower_begin():
        	strip.draw(data)
 
 # Make strip blink red if consoles sends a miss
-def scoretower_miss(console, score):
+def game_miss(console, score):
+	if not strip:
+		return
 	console = match_console(console)
 	score = score + 20
         data = ''
-        for row in range(score, options.strip_length):
+        for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -176,7 +133,7 @@ def scoretower_miss(console, score):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score, options.strip_length):
+	for row in range(score, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -186,11 +143,13 @@ def scoretower_miss(console, score):
 
 # Make strip blink white if consoles sends a hit
 #def hit():
-def scoretower_hit(console, score):
+def game_hit(console, score):
+	if not strip:
+		return
 	console = match_console(console)
 	score = score + 20
         data = ''
-        for row in range(score, options.strip_length):
+        for row in range(score, strip_length):
                 for col in range(0, image_width):
                         if col == console:
                                 data += chr(255)
@@ -211,7 +170,7 @@ def scoretower_hit(console, score):
 			data += chr(75)	
 			data += chr(75)	
 			data += chr(75)	
-	for row in range(score, options.strip_length):
+	for row in range(score, strip_length):
 		for col in range(0, image_width):
 			data += chr(0)	
 			data += chr(0)	
@@ -220,11 +179,13 @@ def scoretower_hit(console, score):
 
 
 # Make all strips blink red if servers declares game is lost
-def scoretower_lost():
+def session_lost():
+	if not strip:
+		return
 	k = 0
 	while k < 6:
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				data += chr(255)
 				data += chr(0)
@@ -234,9 +195,8 @@ def scoretower_lost():
 		time.sleep(.3)
 
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
-				print col
 				data += chr(0)
 				data += chr(0)
 				data += chr(0)
@@ -245,14 +205,16 @@ def scoretower_lost():
 		time.sleep(.3)
 		k = k + 1
 
-	attract()
+	queue_attract()
 
 # Make all strips blink white if servers declare game is won
-def scoretower_won():
+def session_won():
+	if not strip:
+		return
 	k = 0
 	while k < 6: 	# blink 5 times
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				# blink on
 				data += chr(75)
@@ -263,10 +225,9 @@ def scoretower_won():
 		time.sleep(.3)
 
 		data = ''
-		for row in range(0, options.strip_length):
+		for row in range(0, strip_length):
 			for col in range(0, image_width):
 				# blink off
-				print col
 				data += chr(0)
 				data += chr(0)
 				data += chr(0)
@@ -274,15 +235,86 @@ def scoretower_won():
 		strip.draw(data)
 		time.sleep(.3)
 		k = k + 1
+                
+	queue_attract() 	# Return to idle/attract mode
 
-	attract() 	# Return to idle/attract mode
-
+strip_length = 160
 strip = None
 image_width = 8 # width of the picture
 
+lightThread = None
+
+class TowerThread(threading.Thread):
+        def run(self):
+                global queue
+                global queueLock
+                global running
+                global mode
+                running = True
+                print "Thread starting"
+                while (running):
+                        while queue:
+                                mode = None
+                                queueLock.acquire()
+                                if queue:
+                                        m = queue.pop(0)
+                                        m()
+                                queueLock.release()
+                        time.sleep(0.05)
+
+                        
+# public functions below
+
+def queue_attract():
+        queueLock.acquire()
+        queue.append(attract)
+        queueLock.release()
+
+def queue_session_begin():
+        queueLock.acquire()
+        queue.append(session_begin)
+        queueLock.release()
+
+def queue_session_won():
+        queueLock.acquire()
+        queue.append(session_won)
+        queueLock.release()
+
+def queue_session_lost():
+        queueLock.acquire()
+        queue.append(session_lost)
+        queueLock.release()
+
+def queue_game_hit(console,score):
+        queueLock.acquire()
+        queue.append(lambda:game_hit(console,score))
+        queueLock.release()
+
+def queue_game_miss(console,score):
+        queueLock.acquire()
+        queue.append(lambda:game_miss(console,score))
+        queueLock.release()
+
+def stop():
+        global queue
+        global mode
+        global running
+        queue = []
+        mode = None
+        running = False
+
 def init(serialport):
+	global strip
 	strip=LedStrips.LedStrips(image_width,0)
 	strip.connect(serialport)
+	print "Initialized strip"
+        TowerThread().start() 
+
+def shutdown():
+        stop()
+        if strip:
+                strip.draw([0]*(strip_length*image_width*3))
+
 
 #### Strip pattern control functions (/\ above /\) ###
 ######################################################
@@ -295,8 +327,21 @@ if __name__ == "__main__":
         	help="length of the strip", default=160, type=int)
 	
 	(options, args) = parser.parse_args()
-	
+	strip_length = options.strip_length
 	init(options.serial_port)
-
-
+        try:
+                game_miss('VidEditConsole',10)
+                #session_lost()
+                queue_attract()
+                time.sleep(4)
+                queue_game_hit('VidEditConsole',5);
+                time.sleep(2)
+                queue_game_miss('VidEditConsole',-5);
+                time.sleep(2)
+                queue_game_hit('VidEditConsole',5);
+                queue_game_miss('VidEditConsole',-5);
+                time.sleep(2)
+                shutdown()
+        finally:
+                shutdown()
 

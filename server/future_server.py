@@ -4,8 +4,18 @@ from tornado import websocket
 import json
 import time
 import random
-import ScoreTower
+import ScoreTower as tower
 from os import getenv
+
+gpio_avail = True
+
+try:
+    import RPi.GPIO as GPIO
+except:
+    gpio_avail = False
+
+START_GPIO=23
+ABORT_GPIO=24
 
 portNum = getenv('SERVER_PORT',2600)
 
@@ -28,7 +38,7 @@ class Session:
     def start(self):
         self.reset_values()
         self.state = 'running'
-	scoretower_begin()
+	tower.queue_session_begin()
         for console in Console.consoles.copy():
             console.send_session('starting','Future Crew is Go!', self.score)
 
@@ -41,11 +51,11 @@ class Session:
         if won:
             cmd = 'won'
             msg = 'Game is won!!!'
-	    scoretower_won() # blink won sequence, return to attract
+	    tower.queue_session_won() # blink won sequence, return to attract
         else:
             cmd = 'lost'
             msg = 'Game is lost!!!'
-	    scoretower_lost() # blink lost sequence, return to attract
+	    tower.queue_session_lost() # blink lost sequence, return to attract
         for console in Console.consoles.copy():
             console.send_session(cmd, msg, self.score)
 
@@ -94,10 +104,10 @@ class Game:
 	# self.play_console.name returns the name of the console.
         session.game_done(won,score)
         if won:
-	    scoretower_hit(self.play_console.name, score) 
+	    tower.queue_game_hit(self.play_console.name, session.score) 
             print "+ Game {0} won, {1} points".format(self.id[1],score)
         else:
-	    scoretower_miss(self.play_console.name, score) 
+	    tower.queue_game_miss(self.play_console.name, session.score) 
             print "- Game {0} lost, {1} points".format(self.id[1],score)
         self.message_console.send_message(None,self.slot_id)
     
@@ -253,12 +263,40 @@ def heartbeat():
             console.socket.close()
             console.remove()
     session.heartbeat()
+    if gpio_avail:
+        if GPIO.input(START_GPIO) == GPIO.LOW:
+            if not session.state:
+                print "Start button pressed!"
+                session.start()
+        if GPIO.input(ABORT_GPIO) == GPIO.LOW:
+            if session.state == 'running':
+                print "Abort button pressed!"
+                session.abort()
 
 if __name__ == "__main__":
+    try:
+        # Try for first ACM serial port; assume that's the
+        # tower (tower has no recognition protocol)
+        import glob
+        ports = glob.glob('/dev/ttyACM*')
+        tower.init(ports[0])
+        pass
+    except:
+        print "Could not contact LED tower."
+    if gpio_avail:
+        print "Scanning GPIO start/abort buttons."
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(START_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(ABORT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    else:
+        print "GPIO disabled."
     application.listen(portNum, '0.0.0.0')
     print("FC server starting; listening on port {0}.".format(portNum))
     pc = PeriodicCallback(heartbeat,100,IOLoop.instance())
     pc.start()
     IOLoop.instance().start()
+    tower.shutdown()
+    if gpio_avail:
+        GPIO.cleanup()
 
 

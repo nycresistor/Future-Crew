@@ -19,7 +19,7 @@ class PressGame(Game):
         self.update_message('PRESS BUTTON '+self.button+' NOW!!!')
         if not self.wait(2):
             return
-        self.finish(-5)
+        self.finish(-5,"Too slow!")
 
     def on_keypress(self,key):
         if self.is_running() and key.lower() == self.button.lower():

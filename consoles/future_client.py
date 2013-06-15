@@ -60,6 +60,7 @@ class Game(object):
         self.id = gameid
         self.thread = None
         self.score = None
+        self.resultmsg = None
         self.start_time = 0
         self.message = message
         self.supress_msg = False
@@ -89,6 +90,8 @@ class Game(object):
                 'result': won,
                 'score': self.score
                 }
+        if self.resultmsg:
+            msg['message'] = self.resultmsg
         if not self.supress_msg:
             try:
                 self.client.socket.send(json.dumps(msg))
@@ -110,7 +113,8 @@ class Game(object):
             self.supress_msg = True
             self.finish(0)
 
-    def finish(self,score):
+    def finish(self,score,resultmsg=None):
+        self.resultmsg = resultmsg
         if self.score == None:
             self.score = score
         self.exit_evt.set()

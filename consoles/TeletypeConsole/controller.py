@@ -35,7 +35,7 @@ class Controller:
 
 class PressButtonGame(Game):
     def __init__(self,c):
-        super(PressButtonGame, self).__init__('pressbutton','')
+        super(PressButtonGame, self).__init__('pressbutton', None)
 	self.led_state = -1
         self.c = c
     	self.verbs = [
@@ -95,8 +95,12 @@ class TeletypeSlot(MessageSlot):
         self.port = serial.Serial("/dev/ttyACM1", timeout=1)
 
     def on_message(self,text):
-	print "Teletyping: ", text
-	self.port.write(text)
+	if (text):
+		print "Teletyping: ", text
+		self.port.write(text)
+	else:
+		print "Done"
+		self.port.write('\r\n')
 
 c = Controller()
 

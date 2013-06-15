@@ -97,10 +97,22 @@ class TeletypeSlot(MessageSlot):
     def on_message(self,text):
 	if (text):
 		print "Teletyping: ", text
-		self.port.write(text)
+		self.port.write(' ' + text)
 	else:
 		print "Done"
 		self.port.write('\r\n')
+
+    def on_session_start(self,text):
+	print "New session: ", text
+	self.port.write("\r\n### New game ####\r\n")
+
+    def on_session_fail(self,text):
+	print "FAIL"
+	self.port.write("\r\n### GAME LOST ####\r\n")
+
+    def on_session_success(self,text):
+	print "WIN"
+	self.port.write("\r\n### YOUR FUTURE CREW HAS WON! ####\r\n")
 
 c = Controller()
 
@@ -112,10 +124,26 @@ slots = [
     TeletypeSlot(c),
 ]
 
+class TeletypeClient(FutureClient):
+    def __init__(self,controller):
+        self.c = controller
+        super(TeletypeClient,self).__init__('ws://192.168.1.99:2600/socket', name='TeletypeConsole')
+
+    def on_session_start(self,message):
+        slots[0].on_session_start(message)
+
+    def on_session_fail(self,message,score):
+        slots[0].on_session_fail(message)
+
+    def on_session_success(self,message,score):
+        slots[0].on_session_success(message)
+
+
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
-    fc = FutureClient('ws://192.168.1.99:2600/socket','TeletypeConsole')
+    #fc = FutureClient('ws://192.168.1.99:2600/socket','TeletypeConsole')
+    fc = TeletypeClient(c)
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

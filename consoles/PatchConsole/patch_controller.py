@@ -30,7 +30,7 @@ class Controller:
 
 class PatchVerbGame(Game):
     def __init__(self,c):
-        super(PatchVerbGame, self).__init__('a2b',' ')
+        super(PatchVerbGame, self).__init__('a2b', None)
         self.c = c
 
     def play_game(self):
@@ -87,7 +87,7 @@ class AllOffGame(Game):
 
 class ToggleSwitchGame(Game):
     def __init__(self,c):
-        super(ToggleSwitchGame, self).__init__('sw',' ')
+        super(ToggleSwitchGame, self).__init__('sw', None)
         self.c = c
 
     # Should randomly select from a range of choices
@@ -143,7 +143,7 @@ import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
     fc = FutureClient('ws://192.168.1.99:2600/socket','PatchConsole')
-    #fc = FutureClient(name='PatchConsole')
+    #fc = FutureClient('ws://localhost:2600/socket', name='PatchConsole')
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

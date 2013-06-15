@@ -16,13 +16,14 @@ next_id.nid = 0
 
 class MessageSlot(object):
     '''A text display for a message from the server. Each must have a console-unique id.'''
-    def __init__(self,id=None,length = 40):
+    def __init__(self,id=None,length=40,slow=None):
         if id == None:
             id = next_id()
         self.id = id
         self.length = length
         self.in_use = False
         self.text = None
+        self.slow = None
     def message(self,text):
         self.in_use = bool(text)
         self.text = text
@@ -32,10 +33,13 @@ class MessageSlot(object):
         print "MESSAGE: ",text
 
     def jsonable(self):
-        return {
+        m = {
             'id':self.id,
             'len':self.length
             }
+        if self.slow != None:
+            m['slow'] = self.slow
+        return m
 
 class Game(object):
     '''

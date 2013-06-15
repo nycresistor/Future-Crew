@@ -1,6 +1,3 @@
-# toy piano Future Crew client!
-#
-# toy piano sends midi notes 48 - 72 (C - C - C)
 
 from future_client import FutureClient, Game, MessageSlot
 from matrix_orbital_lcd import MatrixOrbitalLCD
@@ -92,8 +89,6 @@ class LCDMessageSlot(MessageSlot):
             self.lcd.lcdprintln(text)
         else:
             self.lcd.cls()
-
-
 
 controller = RotaryConsole()
 

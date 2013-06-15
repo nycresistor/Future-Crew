@@ -148,9 +148,10 @@ people = [("the President", [3, 4, 7]),
           ("the NSA", [6, 7, 2]),
           ("the FBI", [3, 2, 4]),
           ("not found", [4, 0, 4]),
-          ("Moviefone", [7, 1, 1]),
+          ("James Bond", [0, 0, 7]),
+          ("Moviefone", [4, 1, 1]),
           ("the Devil", [6, 6, 6]),
-          ("Jenny", [8, 6, 7]),
+          ("Jenny", [8, 6, 7, 5, 3, 0, 9]),
           ("M", [6]),
           ("the Ghostbusters", [6, 0, 2])]
 

@@ -187,9 +187,6 @@ class Console:
         print "- Removed {0} console".format(self.name)
 
     def wants_game(self):
-        print self.name,"is",
-        if self.bored: print "bored"
-        else: print "not bored"
         return self.bored and len(self.avail_games) > 0
 
     def has_slot(self):

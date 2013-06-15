@@ -158,7 +158,8 @@ people = [("the President", [3, 4, 7]),
           ("Emmanuel Goldstein", [2, 6, 0, 0]),
           ("the Devil", [6, 6, 6]),
           ("Jenny", [8, 6, 7, 5, 3, 0, 9]),
-          ("M", [6]),
+          ("Murder", [6]),
+          ("Pi", [3, 1, 4]),
           ("the Ghostbusters", [6, 0, 2])]
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")

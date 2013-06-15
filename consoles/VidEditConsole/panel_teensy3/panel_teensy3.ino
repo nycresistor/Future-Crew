@@ -2,7 +2,8 @@ void setup() {
   for (int i =0; i < 11; i++) {
     pinMode(i, INPUT_PULLUP);
   }
-  Serial.begin(9600);
+  Serial.begin(19200);
+  Serial.println("initialized serial");
   analogReadRes(10);
   analogReadAveraging(5);
   analogReference(DEFAULT);

@@ -210,7 +210,13 @@ class Console:
             self.last_game_start = time.time()
             game = random.choice(self.avail_games)
             messenger = random.choice(slotavail)
-            slotid = random.choice(messenger.avail_slots)['id']
+            slot = random.choice(messenger.avail_slots)
+            if game.get('short',False) and slot.get('slow',False):
+                # no short games on slow consoles
+                return False
+            messenger.avail_slots = [x for x in messenger.avail_slots if x != slot]
+            self.avail_games = [x for x in self.avail_games if x != game]
+            slotid = slot['id']
             g = Game(messenger,slotid,self,game)
             g.start()
             return True

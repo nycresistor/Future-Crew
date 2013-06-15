@@ -66,6 +66,16 @@ class Controller:
         self.tlock.acquire()
         self.t.write('l{0}:{1}\n'.format(i,mode))
         self.tlock.release()
+    def set_light(self,colors):
+        self.tlock.acquire()
+        all_colors = list('rgb')
+        colors = list(colors)
+        for color in all_colors:
+            m='p'+color
+            if color in colors: m += '+\n'
+            else: m += '-\n'
+            self.t.write(m)
+        self.tlock.release()
     def send_msg(self,msg,clear=True):
         if msg == None:
             msg = ''
@@ -160,19 +170,34 @@ class LCDSlot(MessageSlot):
 
 c = Controller()
 
+c.set_light('r')
+
 games = [
     PressBlinkersGame(c),
     SyncBlinkersGame(c)
 ]
 
 slots = [
-    LCDSlot(c),
 ]
+
+class VidEditClient(FutureClient):
+    def __init__(self,controller):
+        self.c = controller
+        super(VidEditClient,self).__init__(name='VidEditConsole')
+
+    def on_session_start(self,message):
+        c.set_light('b')
+
+    def on_session_fail(self,message,score):
+        c.set_light('r')
+
+    def on_session_success(self,message,score):
+        c.set_light('g')
 
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
-    fc = FutureClient(name='VidEditConsole')
+    fc = VidEditClient(c)
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

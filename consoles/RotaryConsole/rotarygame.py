@@ -20,8 +20,14 @@ class OneDigitGame(Game):
     
         self.timeLimit = 7.0
         self.warningTime = 5.0
+                
+        self.GPO_BAD = 1
+        self.GPO_GOOD = 3
         
         self.c.lcd.backlight(True)
+        self.c.lcd.gpo(self.GPO_BAD,False)
+        self.c.lcd.gpo(self.GPO_GOOD,False)
+        self.c.lcd.brightness(128)
       
         
     def play_game(self):
@@ -30,7 +36,8 @@ class OneDigitGame(Game):
         lost = False
         
         self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
- 
+        self.c.lcd.gpo(self.GPO_BAD,False)
+         
         while self.is_running():
             if not self.wait(0.05):
                 return
@@ -39,14 +46,17 @@ class OneDigitGame(Game):
             if input_digit:
                 if input_digit == self.digit:
                     print 'YES'
+                    self.c.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
                     self.finish(1)
                 else:
                     print 'NO'
+                    self.c.lcd.gpoBlink(1, 0.15, 0.4)
                     mistakes += 1
                     if (mistakes > 3): self.finish(0)
                     
             if (not lost and (time.time()-starttime) > self.timeLimit):
                 print 'OUT OF TIME'
+                self.c.lcd.gpo(self.GPO_BAD,False)
                 lost = True
                 sys.stdout.flush()
                                 
@@ -66,7 +76,13 @@ class PhonebookGame(Game):
         self.timeLimit = 12.0
         self.warningTime = 10.0
         
-        self.c.lcd.backlight(True)     
+        self.GPO_BAD = 1
+        self.GPO_GOOD = 3
+        
+        self.c.lcd.backlight(True)
+        self.c.lcd.gpo(self.GPO_BAD,False)
+        self.c.lcd.gpo(self.GPO_GOOD,False)    
+        self.c.lcd.brightness(128)
         
     def play_game(self):
         starttime = time.time()
@@ -75,7 +91,8 @@ class PhonebookGame(Game):
         lost = False
         
         self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
-
+        self.c.lcd.gpo(self.GPO_BAD,False)
+        
         while self.is_running():
             if not self.wait(0.05):
                 return
@@ -86,16 +103,19 @@ class PhonebookGame(Game):
                     match_idx += 1
                     if match_idx == len(self.person_number):
                         print 'YES'
+                        self.c.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
                         self.finish(1)
                  else:
                     match_idx = 0
                     print 'NO'
+                    self.c.lcd.gpoBlink(1, 0.15, 0.4)
                     mistakes += 1
                     if (mistakes > 3): self.finish(0)
                     
                     
             if (not lost and (time.time()-starttime) > self.timeLimit):
                 print 'OUT OF TIME'
+                self.c.lcd.gpo(self.GPO_BAD,False)
                 lost = True
                 sys.stdout.flush()
                 
@@ -138,6 +158,7 @@ class LCDMessageSlot(MessageSlot):
             self.lcd.lcdprintln(text)
         else:
             self.lcd.cls()
+
 
 controller = RotaryConsole()
 

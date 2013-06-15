@@ -187,6 +187,9 @@ class Console:
         print "- Removed {0} console".format(self.name)
 
     def wants_game(self):
+        print self.name,"is",
+        if self.bored: print "bored"
+        else: print "not bored"
         return self.bored and len(self.avail_games) > 0
 
     def has_slot(self):
@@ -214,6 +217,8 @@ class Console:
             if game.get('short',False) and slot.get('slow',False):
                 # no short games on slow consoles
                 return False
+            messenger.avail_slots = [x for x in messenger.avail_slots where x != slot]
+            self.avail_games = [x for x in self.avail_games where x != game]
             slotid = slot['id']
             g = Game(messenger,slotid,self,game)
             g.start()

@@ -83,7 +83,6 @@ class Game(object):
         if self.message:
             self.update_message(self.message)
         self.play_game()
-        self.exit_evt.set()
         if self.score == None:
             self.score = 0
         won = self.score > 0
@@ -101,6 +100,7 @@ class Game(object):
             except:
                 pass
         self.supress_msg = False
+        self.exit_evt.set()
 
     def wait(self,how_long):
         return not self.exit_evt.wait(how_long)

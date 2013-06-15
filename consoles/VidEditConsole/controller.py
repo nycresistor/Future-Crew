@@ -166,7 +166,6 @@ games = [
 ]
 
 slots = [
-    LCDSlot(c),
 ]
 
 import sys

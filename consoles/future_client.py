@@ -170,12 +170,9 @@ class FutureClient(object):
             urlstring = getenv('SERVER_URL',"ws://192.168.1.99:2600/socket")
         self.name = name
         self.socket = None
-        while (self.socket == None):
-            try:
-                self.socket = create_connection(urlstring,5.0)
-            except socket.error:
-                print "Could not connect to server. Trying again."
-                time.sleep(1.5)
+        self.urlstring = urlstring
+        
+        self._connect(urlstring) 
 
         msg = {'a':'register','name':self.name}
         self.socket.send(json.dumps(msg))
@@ -190,6 +187,16 @@ class FutureClient(object):
             }
         self.started = False
         self.Thread = None
+
+    def _connect(self, urlstring, retry_interval=1.5):
+        while (self.socket == None):
+            try:
+                self.socket = create_connection(urlstring,5.0)
+            except socket.error:
+                print "Could not connect to server. Trying again."
+                time.sleep(1.5)
+
+
 
     def on_message(self, msg):
         slotid = msg['slotid']
@@ -264,8 +271,12 @@ class FutureClient(object):
         self.socket.settimeout(0.1)
         self.started = True
         while self.started:
-            self.poll()
-            self.status()
+            try:
+                self.poll()
+                self.status()
+            finally:
+                # Reconnect on failure
+                self._connect(self.urlstring)
 
     def stop(self):
         self.started = False

@@ -92,6 +92,7 @@ a message. It is usually characterized by a length.
 ```
 {
     'slotid': _identifier for this slot_
+    'slow': _optional, True if this terminal is slow (like a teletype)_
     'len': _numeric width of available slot in characters_
 }
 ```
@@ -119,6 +120,7 @@ Server to console. Messages fill message slots. They can be posted to fill slots
     'slotid': _identifier for this slot, as in message slot object_
     'text': _text to display in the slot; null to free slot_
     'level': _optional; numeric. 0 for normal message, negative for disposable, 1+ for ALERT_
+    'success': _only displayed if this is a success/failure message; boolean value that is True if the game was won, False otherwise_
 }
 ```
 

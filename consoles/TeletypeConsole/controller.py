@@ -14,7 +14,7 @@ class Controller:
     def __init__(self):
 	self.cons = {}
         #self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=1)
-        self.port = serial.Serial("/dev/ttyACM1", timeout=1)
+        self.port = serial.Serial("/dev/ttyACM0", timeout=1)
 	self.button_map = {}
 	for i in range(0,10):
 		self.port.write(chr(ord('A') + i))
@@ -88,13 +88,15 @@ class PressButtonGame(Game):
         self.thread = t
         t.start()
 
-class StdoutSlot(MessageSlot):
+class TeletypeSlot(MessageSlot):
     def __init__(self, c, id=None, length=40):
+        super(TeletypeSlot, self).__init__(id,length)
         self.c = c
-        super(StdoutSlot, self).__init__(id,length)
+        self.port = serial.Serial("/dev/ttyACM1", timeout=1)
 
     def on_message(self,text):
-	print "M: ", text
+	print "Teletyping: ", text
+	self.port.write(text)
 
 c = Controller()
 
@@ -103,7 +105,7 @@ games = [
 ]
 
 slots = [
-    StdoutSlot(c),
+    TeletypeSlot(c),
 ]
 
 import sys

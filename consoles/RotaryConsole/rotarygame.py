@@ -142,7 +142,6 @@ class LCDMessageSlot(MessageSlot):
 controller = RotaryConsole()
 
 people = [("the President", [3, 4, 7]),
-          ("the NSA", [1, 8, 4]),
           ("LOL", [5, 6, 5]),
           ("WTF", [9, 8, 3]),
           ("the NSA", [6, 7, 2]),

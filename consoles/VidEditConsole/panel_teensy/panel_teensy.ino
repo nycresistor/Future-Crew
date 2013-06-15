@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
+const int PANEL_R = 4;
+const int PANEL_G = 5;
+const int PANEL_B = 6;
+
 const int L_COUNT = 3*16;
 
 const int LATCH_PIN = 18;
@@ -89,6 +93,12 @@ void setup() {
   TCCR3B = 0x08 | 0x03; // cs = 3; 1/64 prescaler
   TCCR3C = 0x00;
   TIMSK3 = 0x01; // enable overflow interrupt
+  pinMode(PANEL_R,OUTPUT);
+  digitalWrite(PANEL_R,LOW);
+  pinMode(PANEL_G,OUTPUT);
+  digitalWrite(PANEL_G,LOW);
+  pinMode(PANEL_B,OUTPUT);
+  digitalWrite(PANEL_B,LOW);
 }
 
 int parse(char*& buf) {
@@ -119,6 +129,22 @@ void exec(char *buf) {
   switch(cmd) {
     case 'I':
       Serial.println("teensy");
+      break;
+    case 'p':
+      {
+        char which = buf[1];
+        char mode = buf[2];
+        int val;
+        if (mode == '+') { val = HIGH; }
+        else if (mode == '-') { val = LOW; }
+        else { break; }
+        int pin;
+        if (which == 'r') { pin = PANEL_R; }
+        else if (which == 'g') { pin = PANEL_G; }
+        else if (which == 'b') { pin = PANEL_B; }
+        else { break; }
+        digitalWrite(pin,val);
+      }
       break;
     case 'r':
       Serial.println("Read on other teensy.");     

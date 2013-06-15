@@ -9,28 +9,25 @@ curses.noecho()
 curses.cbreak()
 
 class PressGame(Game):
-    def __init__(self,name,message,button):
+    def __init__(self,name,prefix,message,button):
         self.button = button
-        super(PressGame, self).__init__(name, message)
+        self.prefix = prefix
+        super(PressGame, self).__init__(name, prefix+": "+message)
 
     def play_game(self):
-        if not self.wait(2):
+        if not self.wait(5):
             return
-        self.update_message('PRESS BUTTON '+self.button+' NOW!!!')
-        if not self.wait(2):
+        self.update_message(self.prefix+': PRESS BUTTON '+self.button+' NOW!!!')
+        if not self.wait(5):
             return
-        self.finish(-5)
+        self.finish(-5,self.prefix+":Too slow!")
 
     def on_keypress(self,key):
         if self.is_running() and key.lower() == self.button.lower():
-            self.finish(5)
+            self.finish(5,self.prefix+":Success")
 
 
 
-games = [
-    PressGame('pg1','Press button A.','A'),
-    PressGame('pg2','Press button B.','B')
-]
 
 class PressMessageSlot(MessageSlot):
     def __init__(self, id=None, length=40, x=0, y=0):
@@ -46,15 +43,22 @@ class PressMessageSlot(MessageSlot):
             stdscr.addstr(self.y,self.x,text,curses.A_BLINK|curses.A_BOLD)
 
 slots = [ PressMessageSlot(1,50,10,2) ]
-
+import sys
 if __name__ == '__main__':
     try:
-        fc = FutureClient(name='basic test client')
+        if len(sys.argv)>1:
+            name=sys.argv[1]
+        else:
+            name='test'
+        fc = FutureClient(name=name)
+        games = [
+            PressGame('pg1',name,'Press button A.','A'),
+            PressGame('pg2',name,'Press button B.','B') ]
         fc.available_games = games
         fc.message_slots = slots
         fc.start()
 
-        stdscr.addstr(0,0,"Client running; type 'q' to quit",curses.A_BOLD)
+        stdscr.addstr(0,0,"Console "+name+" Client running; type 'q' to quit",curses.A_BOLD)
         while True:
             c = stdscr.getch()
             if c > 0:

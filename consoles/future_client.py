@@ -23,7 +23,7 @@ class MessageSlot(object):
         self.length = length
         self.in_use = False
         self.text = None
-        self.slow = None
+        self.slow = slow
     def message(self,text):
         self.in_use = bool(text)
         self.text = text
@@ -53,7 +53,7 @@ class Game(object):
     and the method should exit as quickly as possible.
     '''
 
-    def __init__(self, gameid, message = None):
+    def __init__(self, gameid, message=None, short=None, level=None, time=None):
         '''Create a game object. Games must have unique game ids as well
         as an initial message string. Games can change the displayed string
         after they start running.'''
@@ -63,6 +63,9 @@ class Game(object):
         self.resultmsg = None
         self.start_time = 0
         self.message = message
+        self.short = short
+        self.level = level
+        self.time = time
         self.supress_msg = False
         self.exit_evt = threading.Event()
         self.exit_evt.set()
@@ -140,9 +143,13 @@ class Game(object):
         raise Exception("play_game must be implemented!")
 
     def jsonable(self):
-        d = { 'gameid':self.id,
-              'level':0,
-              'time':0 }
+        d = { 'gameid':self.id }
+        if self.level != None:
+            d['level'] = self.level
+        if self.short != None:
+            d['short'] = self.short
+        if self.time != None:
+            d['time'] = self.time
         return d
 
     def update_message(self, new_msg):

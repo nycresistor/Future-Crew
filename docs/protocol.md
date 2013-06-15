@@ -104,8 +104,9 @@ Available game objects represent potential games this console can play at this t
 
 ```
 {
-    'level': _numeric difficulty (optional)_
-    'time': _maximum time to accomplish game (optional)_
+    'level': _optional; numeric difficulty_
+    'short': _optional; should be true if this gave is given less than 10 seconds_
+    'time': _optional; maximum time to accomplish game_
     'gameid': _id of this game_
 }
 ```

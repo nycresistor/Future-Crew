@@ -30,7 +30,7 @@ class Controller:
 
 class PatchVerbGame(Game):
     def __init__(self,c):
-        super(PatchVerbGame, self).__init__('a2b','Patch A to B')
+        super(PatchVerbGame, self).__init__('a2b','')
         self.c = c
 
     def play_game(self):
@@ -84,7 +84,7 @@ class AllOffGame(Game):
 
 class ToggleSwitchGame(Game):
     def __init__(self,c):
-        super(ToggleSwitchGame, self).__init__('sw','Toggle switch')
+        super(ToggleSwitchGame, self).__init__('sw','')
         self.c = c
 
     # Should randomly select from a range of choices

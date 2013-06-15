@@ -1,14 +1,3 @@
-left_patches = {
-'11': '#1 frombulator',		# L 1,1
-'12': '#2 frombulator',		# L 1,2
-'13': '#3 frombulator',		# L 1,3
-'14': '#4 frombulator',		# L 1,4
-'10': '#1 tranmogrifier',	# L 2,1
-'0F': '#2 tranmogrifier',	# L 2,2
-'0E': '#3 tranmogrifier',	# L 2,3
-'0D': '#4 tranmogrifier',	# L 2,4
-}
-
 verb_patches = {
 '0A': 'Invert', # 'Mid11',
 '0C': 'Convert', # 'Mid21',
@@ -22,6 +11,12 @@ verb_patches = {
 '15': 'Reverse', # 'Mid13',
 '16': 'Purge', # 'Mid23',
 '09': 'Spindle', # 'Mid33',
+
+'21': 'Launch', # 'R11',
+'01': 'Check', #'R32',
+'22': 'Ignore', # 'R41',
+'02': 'Sustain', # 'R22',
+'00': 'Verify', # 'R23',
 
 }
 
@@ -40,15 +35,16 @@ noun_patches = {
 '07': 'Lateral thruster', # 'Mid63',
 '05': 'Medial thruster', # 'Mid73',
 '03': 'Reverse thruster', # 'Mid83',
-}
 
-right_patches = {
-'21': 'R11',
-'02': 'R22',
-'00': 'R23',
-'01': 'R32',
-'22': 'R41',
-};
+'11': '#1 frombulator',		# L 1,1
+'12': '#2 frombulator',		# L 1,2
+'13': '#3 frombulator',		# L 1,3
+'14': '#4 frombulator',		# L 1,4
+'10': '#1 tranmogrifier',	# L 2,1
+'0F': '#2 tranmogrifier',	# L 2,2
+'0E': '#3 tranmogrifier',	# L 2,3
+'0D': '#4 tranmogrifier',	# L 2,4
+}
 
 switches = (
  'Frappe',

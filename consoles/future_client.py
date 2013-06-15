@@ -16,13 +16,14 @@ next_id.nid = 0
 
 class MessageSlot(object):
     '''A text display for a message from the server. Each must have a console-unique id.'''
-    def __init__(self,id=None,length = 40):
+    def __init__(self,id=None,length=40,slow=None):
         if id == None:
             id = next_id()
         self.id = id
         self.length = length
         self.in_use = False
         self.text = None
+        self.slow = slow
     def message(self,text):
         self.in_use = bool(text)
         self.text = text
@@ -32,10 +33,13 @@ class MessageSlot(object):
         print "MESSAGE: ",text
 
     def jsonable(self):
-        return {
+        m = {
             'id':self.id,
             'len':self.length
             }
+        if self.slow != None:
+            m['slow'] = self.slow
+        return m
 
 class Game(object):
     '''
@@ -49,15 +53,19 @@ class Game(object):
     and the method should exit as quickly as possible.
     '''
 
-    def __init__(self, gameid, message):
+    def __init__(self, gameid, message=None, short=None, level=None, time=None):
         '''Create a game object. Games must have unique game ids as well
         as an initial message string. Games can change the displayed string
         after they start running.'''
         self.id = gameid
         self.thread = None
         self.score = None
+        self.resultmsg = None
         self.start_time = 0
         self.message = message
+        self.short = short
+        self.level = level
+        self.time = time
         self.supress_msg = False
         self.exit_evt = threading.Event()
         self.exit_evt.set()
@@ -72,6 +80,8 @@ class Game(object):
     def play_game_wrapper(self):
         self.exit_evt.clear()
         self.score = None
+        if self.message:
+            self.update_message(self.message)
         self.play_game()
         self.exit_evt.set()
         if self.score == None:
@@ -83,6 +93,8 @@ class Game(object):
                 'result': won,
                 'score': self.score
                 }
+        if self.resultmsg:
+            msg['message'] = self.resultmsg
         if not self.supress_msg:
             try:
                 self.client.socket.send(json.dumps(msg))
@@ -104,7 +116,8 @@ class Game(object):
             self.supress_msg = True
             self.finish(0)
 
-    def finish(self,score):
+    def finish(self,score,resultmsg=None):
+        self.resultmsg = resultmsg
         if self.score == None:
             self.score = score
         self.exit_evt.set()
@@ -130,10 +143,13 @@ class Game(object):
         raise Exception("play_game must be implemented!")
 
     def jsonable(self):
-        d = { 'message':self.message,
-              'gameid':self.id,
-              'level':0,
-              'time':0 }
+        d = { 'gameid':self.id }
+        if self.level != None:
+            d['level'] = self.level
+        if self.short != None:
+            d['short'] = self.short
+        if self.time != None:
+            d['time'] = self.time
         return d
 
     def update_message(self, new_msg):

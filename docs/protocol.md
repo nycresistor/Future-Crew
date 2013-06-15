@@ -92,6 +92,7 @@ a message. It is usually characterized by a length.
 ```
 {
     'slotid': _identifier for this slot_
+    'slow': _optional, True if this terminal is slow (like a teletype)_
     'len': _numeric width of available slot in characters_
 }
 ```
@@ -103,9 +104,9 @@ Available game objects represent potential games this console can play at this t
 
 ```
 {
-    'message': _message to display on other console_
-    'level': _numeric difficulty (optional)_
-    'time': _maximum time to accomplish game (optional)_
+    'level': _optional; numeric difficulty_
+    'short': _optional; should be true if this gave is given less than 10 seconds_
+    'time': _optional; maximum time to accomplish game_
     'gameid': _id of this game_
 }
 ```
@@ -120,6 +121,7 @@ Server to console. Messages fill message slots. They can be posted to fill slots
     'slotid': _identifier for this slot, as in message slot object_
     'text': _text to display in the slot; null to free slot_
     'level': _optional; numeric. 0 for normal message, negative for disposable, 1+ for ALERT_
+    'success': _only displayed if this is a success/failure message; boolean value that is True if the game was won, False otherwise_
 }
 ```
 

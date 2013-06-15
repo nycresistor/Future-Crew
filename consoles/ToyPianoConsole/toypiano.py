@@ -64,6 +64,7 @@ class TinySongGame(Game):
 						self.c.lcd.gpoBlink(self.GPO_GOOD, 0.1, 0.55)
 						self.finish(1)
 				else:
+					match_idx = 0
 					print 'NO'
 					self.c.sound('no')
 					#self.c.lcd.blink(0.1, 0.35)

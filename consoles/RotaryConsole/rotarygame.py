@@ -53,6 +53,55 @@ class OneDigitGame(Game):
             if ((time.time()-starttime) > self.timeLimit + 0.5):
                 self.finish(0)        
 
+class PhonebookGame(Game):
+    def __init__(self, controller, person_name, person_number):
+        super(PhonebookGame, self).__init__(
+            'PhonebookGame'+person_name, 
+            'Dial '+ person_name + ' !')
+
+        self.c = controller
+        self.person_name = person_name
+        self.person_number = person_number
+    
+        self.timeLimit = 12.0
+        self.warningTime = 10.0
+        
+        self.c.lcd.backlight(True)     
+        
+    def play_game(self):
+        starttime = time.time()
+        mistakes = 0
+        match_idx = 0
+        lost = False
+        
+        self.c.lcd.backlight(True) # make sure LCD light is on and not blinking
+
+        while self.is_running():
+            if not self.wait(0.05):
+                return
+                
+            input_digit = self.c.get_digit()    
+            if input_digit:
+                 if input_digit == self.person_number[match_idx]:
+                    match_idx += 1
+                    if match_idx == len(self.person_number):
+                        print 'YES'
+                        self.finish(1)
+                 else:
+                    match_idx = 0
+                    print 'NO'
+                    mistakes += 1
+                    if (mistakes > 3): self.finish(0)
+                    
+                    
+            if (not lost and (time.time()-starttime) > self.timeLimit):
+                print 'OUT OF TIME'
+                lost = True
+                sys.stdout.flush()
+                
+            if ((time.time()-starttime) > self.timeLimit + 0.5):
+                self.finish(0)    
+
 
 class RotaryConsole:
     def __init__(self):
@@ -92,8 +141,21 @@ class LCDMessageSlot(MessageSlot):
 
 controller = RotaryConsole()
 
+people = [("the President", [3, 4, 7]),
+          ("the NSA", [1, 8, 4]),
+          ("LOL", [5, 6, 5]),
+          ("WTF", [9, 8, 3]),
+          ("the NSA", [6, 7, 2]),
+          ("the FBI", [3, 2, 4]),
+          ("not found", [4, 0, 4]),
+          ("Moviefone", [7, 1, 1]),
+          ("the Devil", [6, 6, 6]),
+          ("Jenny", [8, 6, 7]),
+          ("M", [6]),
+          ("the Ghostbusters", [6, 0, 2])]
+
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
-fc.available_games = [OneDigitGame(controller, i) for i in range(1, 11)]
+fc.available_games = [OneDigitGame(controller, i) for i in range(1, 11)] +  [PhonebookGame(controller, i[0], i[1]) for i in people] 
 fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 
 fc.start()

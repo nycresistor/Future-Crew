@@ -9,6 +9,63 @@ import threading
 illum_count = 25
 led_count = 12
 
+helices = {
+    'D':1,'C':2,'B':3,'A':4,'G':5,'F':6,'E':7
+}
+
+boosters = {
+    '1':24,
+    '2':23,
+    '3':22,
+    '4':21,
+    '5':20
+}
+
+buttongame_map = {
+    'Dump Core':0,
+    'PURGE NOW':8,
+    'Elide Nesting':9,
+    'Enable Life Support':10,
+    'Semiaxis Out':12,
+    'Escape Timeline':13,
+    'Jump to Parallel Timeline':14,
+    'Accelerate Timeline':15,
+    'Advance Timeline':16,
+    'Halt Timeline':17,
+    'Reverse Timeline':18,
+    'RELOAD CORE':19,
+}
+
+class ButtonGame(Game):
+    def __init__(self,c):
+        self.c = c
+        super(ButtonGame, self).__init__('button_game')
+
+    def make_indices_and_msg(self):
+        elements = random.sample(buttongame_map.items(),random.randint(1,2))
+        msg = ' and '.join(map(lambda x:x[0],elements))
+        indices = map(lambda x:x[1],elements)
+        print indices, msg
+        return (indices,msg)
+
+    def play_game(self):
+        (targets,msg) = self.make_indices_and_msg()
+        for idx in targets:
+            self.c.set_illuminated(idx,random.choice([0,0,0,0,2,3,4]))
+        starttime = time.time()
+        while self.is_running() and (time.time()-starttime) < 15.0:
+            if not self.wait(0.05):
+                return
+            for i in self.c.get_keypresses():
+                if i in targets:
+                    self.c.set_illuminated(i,1)
+                    targets.remove(i)
+            if not targets:
+                self.finish(1)
+                return
+        self.finish(-1);
+
+
 class Controller:
     def __init__(self):
         ports={}
@@ -65,6 +122,16 @@ class Controller:
     def set_led(self,i,mode):
         self.tlock.acquire()
         self.t.write('l{0}:{1}\n'.format(i,mode))
+        self.tlock.release()
+    def set_light(self,colors):
+        self.tlock.acquire()
+        all_colors = list('rgb')
+        colors = list(colors)
+        for color in all_colors:
+            m='p'+color
+            if color in colors: m += '+\n'
+            else: m += '-\n'
+            self.t.write(m)
         self.tlock.release()
     def send_msg(self,msg,clear=True):
         if msg == None:
@@ -160,19 +227,35 @@ class LCDSlot(MessageSlot):
 
 c = Controller()
 
+c.set_light('r')
+
 games = [
-    PressBlinkersGame(c),
-    SyncBlinkersGame(c)
+    ButtonGame(c),
+#    PressBlinkersGame(c),
+#    SyncBlinkersGame(c)
 ]
 
 slots = [
-    LCDSlot(c),
 ]
+
+class VidEditClient(FutureClient):
+    def __init__(self,controller):
+        self.c = controller
+        super(VidEditClient,self).__init__(name='VidEditConsole')
+
+    def on_session_start(self,message):
+        c.set_light('b')
+
+    def on_session_fail(self,message,score):
+        c.set_light('r')
+
+    def on_session_success(self,message,score):
+        c.set_light('g')
 
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
-    fc = FutureClient(name='VidEditConsole')
+    fc = VidEditClient(c)
     fc.available_games = games
     fc.message_slots = slots
     fc.start()

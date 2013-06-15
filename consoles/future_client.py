@@ -204,6 +204,15 @@ class FutureClient(object):
         elif msg['operation'] == 'cancel':
             game.cancel()
 
+    def on_session_start(self,message):
+        pass
+
+    def on_session_fail(self,message,score):
+        pass
+
+    def on_session_success(self,message,score):
+        pass
+
     def on_session(self, msg):
         "Respond to a session update by cancelling all games and clearing messages"
         for x in self.available_games:
@@ -214,6 +223,14 @@ class FutureClient(object):
         self.state = msg['state']
         score = msg['score']
         message = msg['message']
+        if self.state == 'starting':
+            self.on_session_start(message)
+        elif self.state == 'lost':
+            self.on_session_fail(message,score)
+        elif self.state == 'reset':
+            self.on_session_fail(message,score)
+        elif self.state == 'won':
+            self.on_session_success(message,score)
 
     def status(self):
         running_games = [x.jsonable() for x in self.available_games if x.is_running()]

@@ -50,10 +50,16 @@ class ButtonGame(Game):
 
     def play_game(self):
         (targets,msg) = self.make_indices_and_msg()
-        for idx in targets:
-            self.c.set_illuminated(idx,random.choice([0,0,0,0,2,3,4]))
+        self.update_message(msg)
+        for idx in range(illum_count):
+            if idx in targets:
+                self.c.set_illuminated(idx,random.choice([0,0,0,0,2,3,4]))
+            else:
+                if random.randint(0,2) == 1:
+                    self.c.set_illuminated(idx,random.choice([0,0,0,0,1,2,2,3,3]))
         starttime = time.time()
-        while self.is_running() and (time.time()-starttime) < 15.0:
+        duration = 8.5 + (2.0 * len(targets))
+        while self.is_running() and (time.time()-starttime) < duration:
             if not self.wait(0.05):
                 return
             for i in self.c.get_keypresses():
@@ -61,9 +67,30 @@ class ButtonGame(Game):
                     self.c.set_illuminated(i,1)
                     targets.remove(i)
             if not targets:
-                self.finish(1)
+                self.finish(3)
                 return
-        self.finish(-1);
+        self.finish(-5);
+
+class HelicesGame(ButtonGame):
+    def make_indices_and_msg(self):
+        k = random.randint(1,8)
+        if (k >= len(helices)):
+            return (helices, 'ACTIVATE ALL HELICES')
+        else:
+            elements = random.sample(helices,k)
+            msg = 'Activate Entanglement Helix '+', '.join(elements)
+            return (elements,msg)
+
+
+class BoostersGame(ButtonGame):
+    def make_indices_and_msg(self):
+        k = random.randint(1,8)
+        if (k >= len(boosters)):
+            return (boosters, 'ENGAGE ALL BOOSTERS')
+        else:
+            elements = random.sample(boosters,k)
+            msg = 'Engage Telemetric Booster '+', '.join(elements)
+            return (elements,msg)
 
 
 class Controller:
@@ -231,8 +258,13 @@ c.set_light('r')
 
 games = [
     ButtonGame(c),
-#    PressBlinkersGame(c),
-#    SyncBlinkersGame(c)
+    HelicesGame(c),
+    BoostersGame(c),
+    ButtonGame(c),
+    HelicesGame(c),
+    BoostersGame(c),
+    PressBlinkersGame(c),
+    SyncBlinkersGame(c)
 ]
 
 slots = [

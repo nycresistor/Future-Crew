@@ -151,7 +151,7 @@ class FutureClient(object):
     
     def __init__(self,urlstring = None,name='Generic Client',max_games=1):
         if not urlstring:
-            urlstring = getenv('SERVER_URL',"ws://localhost:2600/socket")
+            urlstring = getenv('SERVER_URL',"ws://192.168.1.99:2600/socket")
         self.name = name
         self.socket = None
         while (self.socket == None):

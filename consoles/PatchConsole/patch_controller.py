@@ -30,17 +30,20 @@ class Controller:
 
 class PatchVerbGame(Game):
     def __init__(self,c):
-        super(PatchVerbGame, self).__init__('a2b','Patch A to B')
+        super(PatchVerbGame, self).__init__('a2b',' ')
         self.c = c
 
     def play_game(self):
 	self.patch_from = random.choice(patches.verb_patches.keys())
 	self.patch_to = random.choice(patches.noun_patches.keys())
-	self.update_message(patches.verb_patches[self.patch_from] + " the " + patches.noun_patches[self.patch_to])
+	msg = patches.verb_patches[self.patch_from] + " the " + patches.noun_patches[self.patch_to]
+	self.update_message(msg)
+	print "Sending: " + msg
 
         starttime = time.time()
         while self.is_running() and (time.time()-starttime) < 20.0:
-	    if (self.c.cons.get(self.patch_from,'') != self.patch_to):
+	    if (self.c.cons.get(self.patch_from,' ') != self.patch_to):
+		self.wait(0.05)
 		continue
 
 	    print "Success!"
@@ -84,7 +87,7 @@ class AllOffGame(Game):
 
 class ToggleSwitchGame(Game):
     def __init__(self,c):
-        super(ToggleSwitchGame, self).__init__('sw','Toggle switch')
+        super(ToggleSwitchGame, self).__init__('sw',' ')
         self.c = c
 
     # Should randomly select from a range of choices
@@ -133,7 +136,7 @@ games = [
 ]
 
 slots = [
-    StdoutSlot(c),
+    #StdoutSlot(c),
 ]
 
 import sys

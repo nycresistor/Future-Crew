@@ -35,7 +35,7 @@ class Controller:
 
 class PressButtonGame(Game):
     def __init__(self,c):
-        super(PressButtonGame, self).__init__('pressbutton', None)
+        super(PressButtonGame, self).__init__('pressbutton', time=5)
 	self.led_state = -1
         self.c = c
     	self.verbs = [
@@ -67,12 +67,11 @@ class PressButtonGame(Game):
 	self.update_message(teletype_buttons.buttons[self.desired])
 	self.c.port.write(chr(ord('a') + self.desired))
 
-        starttime = time.time()
-	
-        while self.is_running() and (time.time()-starttime) < 5.0:
+	start_time = time.time()
+        while self.is_running() and (time.time() - start_time < 10):
 	    self.update_leds()
 	    if (self.c.button_map.get(self.desired, 0) == 0):
-		time.sleep(0.05)
+		self.wait(0.05)
 		continue
 
 	    self.c.port.write(chr(ord('A') + self.desired))
@@ -80,6 +79,7 @@ class PressButtonGame(Game):
 	    self.finish(5)
 	    self.c.port.write(chr(ord('a') + self.desired))
 	    return
+
 	print "Failure!"
 	self.finish(-5)
 
@@ -89,8 +89,8 @@ class PressButtonGame(Game):
         t.start()
 
 class TeletypeSlot(MessageSlot):
-    def __init__(self, c, id=None, length=40):
-        super(TeletypeSlot, self).__init__(id,length)
+    def __init__(self, c, id=None, length=60):
+        super(TeletypeSlot, self).__init__(id,length, slow=True)
         self.c = c
         self.port = serial.Serial("/dev/ttyACM1", timeout=1)
 

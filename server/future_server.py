@@ -214,6 +214,7 @@ class Console:
             if game.get('short',False) and slot.get('slow',False):
                 # no short games on slow consoles
                 return False
+            self.bored = False
             messenger.avail_slots = [x for x in messenger.avail_slots if x != slot]
             self.avail_games = [x for x in self.avail_games if x != game]
             slotid = slot['id']

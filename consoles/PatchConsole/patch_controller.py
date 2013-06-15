@@ -11,13 +11,14 @@ from random import randint
 class Controller:
     def __init__(self):
 	self.cons = {}
+	self.switches = 0
         self.port = serial.Serial("/dev/ttyACM0", timeout=3)
 
     def get_patches(self):
         keys = self.port.readline().strip()
 	if not keys:
 	    return
-	#print keys
+	#print "Read:" + keys
 	cons = keys.split(' ')
 	self.switches = int(cons[0], 16) & ~0x80
 	con_map = {}
@@ -25,6 +26,7 @@ class Controller:
 		fromto = con.split(':')
 		#print fromto[0], '=>', fromto[1]
 		con_map[fromto[0]] = fromto[1]
+		con_map[fromto[1]] = fromto[0]
 	self.cons = con_map
         return
 
@@ -38,7 +40,7 @@ class PatchVerbGame(Game):
 	self.patch_to = random.choice(patches.noun_patches.keys())
 	msg = patches.verb_patches[self.patch_from] + " the " + patches.noun_patches[self.patch_to]
 	self.update_message(msg)
-	print "Sending: " + msg
+	print "Sending: " + msg + "(" + self.patch_from + ":" + self.patch_to + ")"
 
         starttime = time.time()
         while self.is_running() and (time.time()-starttime) < 20.0:
@@ -72,6 +74,7 @@ class AllOffGame(Game):
         starttime = time.time()
         while self.is_running() and (time.time()-starttime) < 10.0:
 	    if (self.c.switches != 0):
+		self.wait(0.05)
 		continue
 
 	    print "All switches off!"
@@ -108,6 +111,7 @@ class ToggleSwitchGame(Game):
         starttime = time.time()
         while self.is_running() and (time.time()-starttime) < 10.0:
 	    if (self.c.switches & (1 << self.sw_num) == self.start_value):
+		self.wait(0.05)
 		continue
 
 	    print "Success!"
@@ -150,7 +154,7 @@ if __name__ == '__main__' and len(sys.argv) == 1:
     try:
 	while True:
 	    c.get_patches()
-	    time.sleep(0.05)
+	    #time.sleep(0.05)
     except:
 	fc.quit()
 else:

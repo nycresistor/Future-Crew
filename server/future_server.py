@@ -6,6 +6,7 @@ import time
 import random
 import ScoreTower as tower
 from os import getenv
+import threading
 
 gpio_avail = True
 
@@ -99,7 +100,7 @@ class Game:
                 self.slot_id))
         self.play_console.send_control(self.msg,'start')
 
-    def resolve(self,won,score):
+    def resolve(self,won,score,resultmsg):
 	# self.play_console.name returns the name of the console.
         session.game_done(won,score)
         if won:
@@ -108,7 +109,12 @@ class Game:
         else:
 	    tower.queue_game_miss(self.play_console.name, session.score) 
             print "- Game {0} lost, {1} points".format(self.id[1],score)
-        self.message_console.send_message(None,self.slot_id)
+        def send_messages_run():
+            self.message_console.send_message(resultmsg,self.slot_id)
+            time.sleep(1.5)
+            self.message_console.send_message(None,self.slot_id)
+        t = threading.Thread(target=send_messages_run)
+        t.start()
     
     def handle_game_update(self,update):
         if update['running']:
@@ -119,7 +125,13 @@ class Game:
         else:
             won = update['result']
             score = update.get('score',0)
-            self.resolve(won,score)
+            resultmsg = update.get('message',None)
+            if not resultmsg:
+                if won:
+                    resultmsg = 'SUCCESS'
+                else:
+                    resultmsg = 'FAILURE'
+            self.resolve(won,score,resultmsg)
             del Game.games[(self.play_console,update['gameid'])]
 
 class Console:

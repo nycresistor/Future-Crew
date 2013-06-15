@@ -66,6 +66,13 @@ class Controller:
         self.tlock.acquire()
         self.t.write('l{0}:{1}\n'.format(i,mode))
         self.tlock.release()
+    def set_light(self,color,on):
+        self.tlock.acquire()
+        m='p'+color
+        if on: m += '+\n'
+        else: m += '-\n'
+        self.t.write(m)
+        self.tlock.release()
     def send_msg(self,msg,clear=True):
         if msg == None:
             msg = ''
@@ -159,6 +166,8 @@ class LCDSlot(MessageSlot):
         self.c.send_msg(text)
 
 c = Controller()
+
+c.setLight('b',True)
 
 games = [
     PressBlinkersGame(c),

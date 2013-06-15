@@ -103,7 +103,6 @@ Available game objects represent potential games this console can play at this t
 
 ```
 {
-    'message': _message to display on other console_
     'level': _numeric difficulty (optional)_
     'time': _maximum time to accomplish game (optional)_
     'gameid': _id of this game_

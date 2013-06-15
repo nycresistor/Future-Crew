@@ -97,7 +97,6 @@ class Game:
                 self.id[1],
                 self.message_console.name,
                 self.slot_id))
-        self.message_console.send_message(self.msg['message'],self.slot_id)
         self.play_console.send_control(self.msg,'start')
 
     def resolve(self,won,score):

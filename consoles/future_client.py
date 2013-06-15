@@ -49,7 +49,7 @@ class Game(object):
     and the method should exit as quickly as possible.
     '''
 
-    def __init__(self, gameid, message):
+    def __init__(self, gameid, message = None):
         '''Create a game object. Games must have unique game ids as well
         as an initial message string. Games can change the displayed string
         after they start running.'''
@@ -72,6 +72,8 @@ class Game(object):
     def play_game_wrapper(self):
         self.exit_evt.clear()
         self.score = None
+        if self.message:
+            self.update_message(self.message)
         self.play_game()
         self.exit_evt.set()
         if self.score == None:
@@ -130,8 +132,7 @@ class Game(object):
         raise Exception("play_game must be implemented!")
 
     def jsonable(self):
-        d = { 'message':self.message,
-              'gameid':self.id,
+        d = { 'gameid':self.id,
               'level':0,
               'time':0 }
         return d

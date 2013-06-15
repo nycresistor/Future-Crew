@@ -274,7 +274,7 @@ class FutureClient(object):
             try:
                 self.poll()
                 self.status()
-            finally:
+            except:
                 # Reconnect on failure
                 self._connect(self.urlstring)
 

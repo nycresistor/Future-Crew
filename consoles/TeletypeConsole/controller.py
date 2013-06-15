@@ -15,23 +15,14 @@ class Controller:
 	self.cons = {}
         #self.port = serial.Serial("/dev/tty.usbmodem12341", timeout=1)
         self.port = serial.Serial("/dev/ttyACM1", timeout=1)
-	self.led_state = -1
 	self.button_map = {}
 	for i in range(0,10):
 		self.port.write(chr(ord('A') + i))
 		time.sleep(0.1)
 		self.port.write(chr(ord('a') + i))
 
-    def update_leds(self):
-	if (self.led_state == -1):
-	    self.led_state = random.randint(0,10)
-	    self.port.write(chr(ord('A') + self.led_state))
-	else:
-	    self.port.write(chr(ord('a') + self.led_state))
-	    self.led_state = -1
-
     def get_buttons(self):
-	self.update_leds()
+	#self.update_leds()
         keys = self.port.readline().strip()
 	if not keys:
 	    return
@@ -44,7 +35,8 @@ class Controller:
 
 class PressButtonGame(Game):
     def __init__(self,c):
-        super(PressButtonGame, self).__init__('pressbutton','Press a button')
+        super(PressButtonGame, self).__init__('pressbutton','')
+	self.led_state = -1
         self.c = c
     	self.verbs = [
 	    'Press',
@@ -57,17 +49,30 @@ class PressButtonGame(Game):
 
 
     def verb(self,x):
-	return random.choice(self.verbs) + ' ' + x
+	#return random.choice(self.verbs) + ' ' + x
+	return x
+
+    def update_leds(self):
+	if (self.led_state == -1):
+	    self.led_state = random.randint(0,10)
+	    self.c.port.write(chr(ord('A') + self.led_state))
+	else:
+	    self.c.port.write(chr(ord('a') + self.led_state))
+	    self.led_state = -1
 
     def play_game(self):
 	self.desired = random.choice(teletype_buttons.buttons.keys())
+        self.c.port.write(chr(ord('A') + self.desired))
 	print "desired: " + str(self.desired)
 	self.update_message(teletype_buttons.buttons[self.desired])
+	self.c.port.write(chr(ord('a') + self.desired))
 
         starttime = time.time()
 	
         while self.is_running() and (time.time()-starttime) < 5.0:
+	    self.update_leds()
 	    if (self.c.button_map.get(self.desired, 0) == 0):
+		time.sleep(0.05)
 		continue
 
 	    self.c.port.write(chr(ord('A') + self.desired))
@@ -111,7 +116,7 @@ if __name__ == '__main__' and len(sys.argv) == 1:
     try:
 	while True:
 	    c.get_buttons()
-	    time.sleep(0.05)
+	    #time.sleep(0.05)
     except:
 	print "except"
 	fc.quit()

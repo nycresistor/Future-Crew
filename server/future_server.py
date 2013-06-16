@@ -270,7 +270,7 @@ application = tornado.web.Application([
     (r"/socket", SpaceteamSocket),
 ])
 
-TIMEOUT = 2.0
+TIMEOUT = 10.0
 
 def heartbeat():
     # check for client timeouts

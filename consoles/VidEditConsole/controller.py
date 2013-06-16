@@ -42,7 +42,7 @@ class ButtonGame(Game):
         super(ButtonGame, self).__init__('button_game')
 
     def make_indices_and_msg(self):
-        elements = random.sample(buttongame_map.items(),random.randint(1,2))
+        elements = random.sample(buttongame_map.items(),1)
         msg = ' and '.join(map(lambda x:x[0],elements))
         indices = map(lambda x:x[1],elements)
         print indices, msg
@@ -78,7 +78,7 @@ class HelicesGame(ButtonGame):
             return (helices, 'ACTIVATE ALL HELICES')
         else:
             elements = random.sample(helices,k)
-            msg = 'Activate Entanglement Helix '+', '.join(elements)
+            msg = 'Activate Helix '+', '.join(elements)
             return (elements,msg)
 
 
@@ -89,7 +89,7 @@ class BoostersGame(ButtonGame):
             return (boosters, 'ENGAGE ALL BOOSTERS')
         else:
             elements = random.sample(boosters,k)
-            msg = 'Engage Telemetric Booster '+', '.join(elements)
+            msg = 'Engage Booster '+', '.join(elements)
             return (elements,msg)
 
 
@@ -260,11 +260,8 @@ games = [
     ButtonGame(c),
     HelicesGame(c),
     BoostersGame(c),
-    ButtonGame(c),
-    HelicesGame(c),
-    BoostersGame(c),
-    PressBlinkersGame(c),
-    SyncBlinkersGame(c)
+#    PressBlinkersGame(c),
+#    SyncBlinkersGame(c)
 ]
 
 slots = [

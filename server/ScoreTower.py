@@ -9,7 +9,8 @@ console_map = {
         'ToyPianoClient':0,
         'PatchConsole':1,
         'VidEditConsole':2,
-        'TeletypeConsole':3
+        'TeletypeConsole':3,
+        'RotaryConsole':3
 }
 
 def match_console(console):

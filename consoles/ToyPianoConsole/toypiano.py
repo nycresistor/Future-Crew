@@ -339,7 +339,7 @@ class LCDMessageSlot(MessageSlot):
 
 controller = ToyPianoConsole()
 
-songs = [("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C C C D E
+songs = [  #("ROW YOUR BOAT",   [0, 0, 0, 2, 4]),       # Row Row Row Your Boat - C C C D E
 		 ("E-I-E-I-O",       [4, 4, 2, 2, 0]),       # E-I-E-I-O - E E D D C
 		 ("FRERE JACQUES",   [7, 9, 11, 7]),         # Frere Jacques - G A B G
 		 ("TWINKLE TWINKLE", [7, 7, 2, 2]),          # Twinkle Twinkle Little Star - G G D D 
@@ -352,7 +352,7 @@ chords = [  [0, 'MAJOR'],
             [4, 'MAJOR'],
             [9, 'MAJOR'],
             [2, 'MINOR'],
-            [7, 'MINOR'],
+          #  [7, 'MINOR'],
             [5, 'MINOR'] ] 
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")

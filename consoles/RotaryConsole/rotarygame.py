@@ -183,7 +183,7 @@ people = [("the President", [3, 4, 7]),
           ("Pi", [3, 1, 4]),
           ("the Ghostbusters", [6, 0, 2])]
 
-fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
+fc = FutureClient(name="RotaryConsole", urlstring="ws://192.168.1.99:2600/socket")
 fc.available_games = [OneDigitGame(controller, i) for i in range(1, 11)] +  [PhonebookGame(controller, i[0], i[1]) for i in people] 
 fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 

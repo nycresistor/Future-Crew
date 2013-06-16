@@ -9,6 +9,90 @@ import threading
 illum_count = 25
 led_count = 12
 
+helices = {
+    'D':1,'C':2,'B':3,'A':4,'G':5,'F':6,'E':7
+}
+
+boosters = {
+    '1':24,
+    '2':23,
+    '3':22,
+    '4':21,
+    '5':20
+}
+
+buttongame_map = {
+    'Dump Core':0,
+    'PURGE NOW':8,
+    'Elide Nesting':9,
+    'Enable Life Support':10,
+    'Semiaxis Out':12,
+    'Escape Timeline':13,
+    'Jump to Parallel Timeline':14,
+    'Accelerate Timeline':15,
+    'Advance Timeline':16,
+    'Halt Timeline':17,
+    'Reverse Timeline':18,
+    'RELOAD CORE':19,
+}
+
+class ButtonGame(Game):
+    def __init__(self,c):
+        self.c = c
+        super(ButtonGame, self).__init__('button_game')
+
+    def make_indices_and_msg(self):
+        elements = random.sample(buttongame_map.items(),random.randint(1,2))
+        msg = ' and '.join(map(lambda x:x[0],elements))
+        indices = map(lambda x:x[1],elements)
+        print indices, msg
+        return (indices,msg)
+
+    def play_game(self):
+        (targets,msg) = self.make_indices_and_msg()
+        self.update_message(msg)
+        for idx in range(illum_count):
+            if idx in targets:
+                self.c.set_illuminated(idx,random.choice([0,0,0,0,2,3,4]))
+            else:
+                if random.randint(0,2) == 1:
+                    self.c.set_illuminated(idx,random.choice([0,0,0,0,1,2,2,3,3]))
+        starttime = time.time()
+        duration = 8.5 + (2.0 * len(targets))
+        while self.is_running() and (time.time()-starttime) < duration:
+            if not self.wait(0.05):
+                return
+            for i in self.c.get_keypresses():
+                if i in targets:
+                    self.c.set_illuminated(i,1)
+                    targets.remove(i)
+            if not targets:
+                self.finish(3)
+                return
+        self.finish(-5);
+
+class HelicesGame(ButtonGame):
+    def make_indices_and_msg(self):
+        k = random.randint(1,8)
+        if (k >= len(helices)):
+            return (helices, 'ACTIVATE ALL HELICES')
+        else:
+            elements = random.sample(helices,k)
+            msg = 'Activate Entanglement Helix '+', '.join(elements)
+            return (elements,msg)
+
+
+class BoostersGame(ButtonGame):
+    def make_indices_and_msg(self):
+        k = random.randint(1,8)
+        if (k >= len(boosters)):
+            return (boosters, 'ENGAGE ALL BOOSTERS')
+        else:
+            elements = random.sample(boosters,k)
+            msg = 'Engage Telemetric Booster '+', '.join(elements)
+            return (elements,msg)
+
+
 class Controller:
     def __init__(self):
         ports={}
@@ -173,6 +257,12 @@ c = Controller()
 c.set_light('r')
 
 games = [
+    ButtonGame(c),
+    HelicesGame(c),
+    BoostersGame(c),
+    ButtonGame(c),
+    HelicesGame(c),
+    BoostersGame(c),
     PressBlinkersGame(c),
     SyncBlinkersGame(c)
 ]

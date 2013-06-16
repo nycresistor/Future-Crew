@@ -352,7 +352,7 @@ chords = [  [0, 'MAJOR'],
             [4, 'MAJOR'],
             [9, 'MAJOR'],
             [2, 'MINOR'],
-            [7, 'MINOR'],
+          #  [7, 'MINOR'],
             [5, 'MINOR'] ] 
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")

@@ -10,13 +10,14 @@ verb_patches = {
 
 '15': 'Reverse', # 'Mid13',
 '16': 'Purge', # 'Mid23',
-'09': 'Spindle', # 'Mid33',
+'09': 'Verify', # 'Mid33',
 
-'21': 'Launch', # 'R11',
-'01': 'Check', #'R32',
-'22': 'Ignore', # 'R41',
-'02': 'Sustain', # 'R22',
-'00': 'Verify', # 'R23',
+#'21': 'Adjust', # 'R11',
+#'01': 'Polarize', #'R32',
+#'22': 'Modulate', # 'R41',
+#'02': 'Invert', # 'R22',
+#'00': 'Verify', # 'R23',
+
 
 }
 

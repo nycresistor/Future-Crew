@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from future_client import FutureClient, Game, MessageSlot
 import serial
 import serial.tools.list_ports as list_ports
@@ -105,7 +106,11 @@ class Controller:
             print("Found {0}".format(i))
         self.t=ports['teensy']
         self.tpp=ports['teensypp']
-        self.t3=ports['teensy3']
+	# teensy 3 is unreliable; we're not using it right now anyway
+	try:
+            self.t3=ports['teensy3']
+        except:
+            self.t3=None
         self.tlock = threading.RLock()
         self.tpplock = threading.RLock()
         self.t3lock = threading.RLock()

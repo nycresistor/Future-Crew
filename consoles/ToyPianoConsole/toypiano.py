@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # toy piano Future Crew client!
 #
 # toy piano sends midi notes 48 - 72 (C - C - C)

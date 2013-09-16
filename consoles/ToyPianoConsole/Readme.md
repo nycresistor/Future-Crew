@@ -22,3 +22,14 @@ toypiano.py is the console controller.  Run it with
 `PYTHONPATH=.. python toypiano.pi`
 
 feedback sounds in ogg format are in sounds/ folder.  I found some useable placeholder sounds already oggified at http://www.acoustica.com/files/aclooplib/ especially http://www.acoustica.com/files/aclooplib/Sound%20Effects%20Tones/
+
+Installation
+============
+
+Install the ToyPianoConsole (game) script:
+  sudo cp ToyPianoConsole.init.d /etc/init.d/ToyPianoConsole
+  sudo update-rc.d ToyPianoConsole defaults 99
+
+Reboot:
+  sudo reboot
+

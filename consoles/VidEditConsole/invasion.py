@@ -5,6 +5,12 @@
 if __name__ == '__main__':
     import sys
     sys.path.append('..')
+    import os
+    pid = str(os.getpid())
+    f = open('/tmp/invasion.pid', 'w')
+    f.write(pid)
+    f.close()
+
 
 from future_client import FutureClient, Game, MessageSlot
 

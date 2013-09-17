@@ -31,3 +31,17 @@ Commands consist of one byte and then a variable-length payload.
 0x05 - read pushswitches. NYD.
 
 0x06 - read encoders. NYD.
+
+Installation
+============
+
+Install the invasion (display) script:
+  sudo cp invasion.init.d /etc/init.d/invasion
+  sudo update-rc.d invasion defaults 99
+
+Install the VidEditConsole (game) script:
+  sudo cp VidEditConsole.init.d /etc/init.d/VidEditConsole
+  sudo update-rc.d VidEditConsole defaults 99
+
+Reboot:
+  sudo reboot

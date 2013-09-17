@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from future_client import FutureClient, Game, MessageSlot
 import serial
 import serial.tools.list_ports as list_ports
@@ -42,7 +43,7 @@ class ButtonGame(Game):
         super(ButtonGame, self).__init__('button_game')
 
     def make_indices_and_msg(self):
-        elements = random.sample(buttongame_map.items(),random.randint(1,2))
+        elements = random.sample(buttongame_map.items(),1)
         msg = ' and '.join(map(lambda x:x[0],elements))
         indices = map(lambda x:x[1],elements)
         print indices, msg
@@ -78,7 +79,7 @@ class HelicesGame(ButtonGame):
             return (helices, 'ACTIVATE ALL HELICES')
         else:
             elements = random.sample(helices,k)
-            msg = 'Activate Entanglement Helix '+', '.join(elements)
+            msg = 'Activate Helix '+', '.join(elements)
             return (elements,msg)
 
 
@@ -89,7 +90,7 @@ class BoostersGame(ButtonGame):
             return (boosters, 'ENGAGE ALL BOOSTERS')
         else:
             elements = random.sample(boosters,k)
-            msg = 'Engage Telemetric Booster '+', '.join(elements)
+            msg = 'Engage Booster '+', '.join(elements)
             return (elements,msg)
 
 
@@ -105,7 +106,11 @@ class Controller:
             print("Found {0}".format(i))
         self.t=ports['teensy']
         self.tpp=ports['teensypp']
-        self.t3=ports['teensy3']
+	# teensy 3 is unreliable; we're not using it right now anyway
+	try:
+            self.t3=ports['teensy3']
+        except:
+            self.t3=None
         self.tlock = threading.RLock()
         self.tpplock = threading.RLock()
         self.t3lock = threading.RLock()
@@ -260,11 +265,8 @@ games = [
     ButtonGame(c),
     HelicesGame(c),
     BoostersGame(c),
-    ButtonGame(c),
-    HelicesGame(c),
-    BoostersGame(c),
-    PressBlinkersGame(c),
-    SyncBlinkersGame(c)
+#    PressBlinkersGame(c),
+#    SyncBlinkersGame(c)
 ]
 
 slots = [

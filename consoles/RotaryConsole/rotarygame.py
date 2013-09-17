@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 from future_client import FutureClient, Game, MessageSlot
 from matrix_orbital_lcd import MatrixOrbitalLCD
 

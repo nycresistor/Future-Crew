@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 # Teletype and pushbutton interface
 #

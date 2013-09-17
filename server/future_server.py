@@ -1,3 +1,4 @@
+#!/usr/bin/python -u 
 from tornado.ioloop import IOLoop, PeriodicCallback
 import tornado.web
 from tornado import websocket

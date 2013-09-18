@@ -6,7 +6,8 @@ import socket
 import sys
 import logging
 
-logging.basicConfig(filename='/tmp/{}'.format(sys.argv[0]),level=logging.DEBUG)
+scriptname = sys.argv[0].replace('.py','')
+logging.basicConfig(filename='/var/log/{}.log'.format(scriptname),level=logging.DEBUG)
 
 from os import getenv
 

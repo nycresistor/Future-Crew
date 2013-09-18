@@ -10,7 +10,7 @@ from os import getenv
 import threading
 import logging
 
-logging.basicConfig(filename='/var/log/fc-server.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.DEBUG)
+logging.basicConfig(filename='/var/log/fc/server.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.DEBUG)
 
 gpio_avail = True
 

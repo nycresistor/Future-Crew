@@ -8,6 +8,9 @@ import random
 import ScoreTower as tower
 from os import getenv
 import threading
+import logging
+
+logging.basicConfig(filename='/var/log/fc-server.log',format='%(asctime)s %(levelname)s:%(message)s',level=logging.DEBUG)
 
 gpio_avail = True
 
@@ -48,7 +51,7 @@ class Session:
         self.session_done(False)
 
     def session_done(self,won):
-        print "Game is won:",won
+        logging.info("Game is won: {}".format(won))
         self.state = None
         if won:
             cmd = 'won'
@@ -94,7 +97,7 @@ class Game:
         Game.games[self.id] = self
 
     def start(self):
-        print(": starting game, {0}:{1} --> {2}:{3}".format(
+        logging.info(": starting game, {0}:{1} --> {2}:{3}".format(
                 self.play_console.name,
                 self.id[1],
                 self.message_console.name,
@@ -106,10 +109,10 @@ class Game:
         session.game_done(won,score)
         if won:
 	    tower.queue_game_hit(self.play_console.name, session.score) 
-            print "+ Game {0} won, {1} points".format(self.id[1],score)
+            logging.info("+ Game {0} won, {1} points".format(self.id[1],score))
         else:
 	    tower.queue_game_miss(self.play_console.name, session.score) 
-            print "- Game {0} lost, {1} points".format(self.id[1],score)
+            logging.info("- Game {0} lost, {1} points".format(self.id[1],score))
         def send_messages_run():
             self.message_console.send_message(resultmsg,self.slot_id)
             time.sleep(1.5)
@@ -142,7 +145,7 @@ class Console:
         self.socket = socket
         self.timestamp = time.time()
         Console.consoles.add(self)
-        print "+ Added {0} console".format(self.name)
+        logging.info("+ Added {0} console".format(self.name))
         self.avail_slots = []
         self.avail_games = []
         self.queued_message = None
@@ -158,7 +161,7 @@ class Console:
         try:
             self.socket.write_message(json.dumps(m_msg))
         except:
-            print "Can't send message; possible that client has dropped!"
+            logging.error("Can't send message; possible that client has dropped!")
 
     def send_session(self,state,message,score):
         s_msg = {
@@ -170,7 +173,7 @@ class Console:
         try:
             self.socket.write_message(json.dumps(s_msg))
         except:
-            print "Can't send message; possible that client has dropped!"
+            logging.error("Can't send message; possible that client has dropped!")
 
     def send_control(self,game,operation):
         p_msg = {
@@ -181,11 +184,11 @@ class Console:
         try:
             self.socket.write_message(json.dumps(p_msg))
         except:
-            print "Can't send control; possible that client has dropped!"
+            logging.error("Can't send control; possible that client has dropped!")
 
     def remove(self):
         Console.consoles.remove(self)
-        print "- Removed {0} console".format(self.name)
+        logging.error("- Removed {0} console".format(self.name))
 
     def wants_game(self):
         return self.bored and len(self.avail_games) > 0
@@ -256,7 +259,7 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         try:
             Game.games[(self.console,msg['gameid'])].handle_game_update(msg)
         except KeyError:
-            print "Update message sent for obsolete game {0}".format(msg['gameid'])
+            logging.error("Update message sent for obsolete game {0}".format(msg['gameid']))
             
     def on_close(self):
         if self.console:
@@ -278,18 +281,18 @@ def heartbeat():
     timestamp = time.time()
     for console in Console.consoles.copy():
         if (timestamp - console.timestamp) > TIMEOUT:
-            print("* Console {0} timed out; closing socket".format(console.name))
+            logging.error("* Console {0} timed out; closing socket".format(console.name))
             console.socket.close()
             console.remove()
     session.heartbeat()
     if gpio_avail:
         if GPIO.input(START_GPIO) == GPIO.LOW:
             if not session.state:
-                print "Start button pressed!"
+                logging.info("Start button pressed!")
                 session.start()
         if GPIO.input(ABORT_GPIO) == GPIO.LOW:
             if session.state == 'running':
-                print "Abort button pressed!"
+                logging.info("Abort button pressed!")
                 session.abort()
 
 if __name__ == "__main__":
@@ -301,16 +304,16 @@ if __name__ == "__main__":
         tower.init(ports[0])
         tower.queue_attract()
     except:
-        print "Could not contact LED tower."
+        logging.error("Could not contact LED tower.")
     if gpio_avail:
-        print "Scanning GPIO start/abort buttons."
+        logging.info("Scanning GPIO start/abort buttons.")
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(START_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(ABORT_GPIO, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     else:
-        print "GPIO disabled."
+        logging.error("GPIO disabled.")
     application.listen(portNum, '0.0.0.0')
-    print("FC server starting; listening on port {0}.".format(portNum))
+    logging.info("FC server starting; listening on port {0}.".format(portNum))
     pc = PeriodicCallback(heartbeat,100,IOLoop.instance())
     pc.start()
     IOLoop.instance().start()

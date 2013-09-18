@@ -40,7 +40,7 @@ Installation
 ============
 
 Install the invasion (display) script:
-  sudo cp invasion.init.d /etc/init.d/invasion
+  sudo cp ../VidEditConsole/invasion.init.d /etc/init.d/invasion
   sudo update-rc.d invasion defaults 99
 
 Install the PatchConsole (game) script:

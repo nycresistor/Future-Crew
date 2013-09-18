@@ -134,6 +134,7 @@ Announcement for scroller or whatnot
     'a': 'announcement'
     'name': _name of console that announcement pertains to (optional)_
     'message': _text of message_
+    'game_score': _number of points won in this game (negative for a loss)_
     'score': _current game score_
 }
 ```

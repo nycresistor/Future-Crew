@@ -64,7 +64,7 @@ class Session:
         for console in Console.consoles.copy():
             console.send_session(cmd, msg, self.score)
 
-    def game_done(self,won,score):
+    def game_done(self,won,score,player_console):
         self.score += score
         if score > 0: self.pos_score += score
         else: self.neg_score += score
@@ -72,6 +72,13 @@ class Session:
             self.session_done(True)
         elif self.neg_score < self.neg_threshold:
             self.session_done(False)
+        else:
+            n = player_console.name
+            if won: msg = n + ":SUCCESS"
+            else: msg = n + ":FAIL"
+            for console in Console.consoles.copy():
+                console.send_announcement(n, score, self.score, msg)
+
 
     def heartbeat(self):
         if self.state == 'running':
@@ -162,6 +169,20 @@ class Console:
             self.socket.write_message(json.dumps(m_msg))
         except:
             logging.error("Can't send message; possible that client has dropped!")
+
+    def send_announcement(self,name,game_score,score,message):
+        console.send_announcement(n, score, self.score, msg)
+        m_msg = {
+            'a' : 'announcement',
+            'message' : message,
+            'name': name,
+            'score': score,
+            'game_score': game_score
+            }
+        try:
+            self.socket.write_message(json.dumps(m_msg))
+        except:
+            logging.error("Can't send announcement; possible that client has dropped!")
 
     def send_session(self,state,message,score):
         s_msg = {

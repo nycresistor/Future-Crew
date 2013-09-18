@@ -3,6 +3,11 @@ import json
 import time
 import threading
 import socket
+import sys
+import logging
+
+logging.basicConfig(filename='/tmp/{}'.format(sys.argv[0]),level=logging.DEBUG)
+
 from os import getenv
 
 class RegistrationError(Exception):
@@ -31,7 +36,7 @@ class MessageSlot(object):
         self.on_message(text)
 
     def on_message(self,text):
-        print "MESSAGE: ",text
+        logging.info("MESSAGE: {}".format(text))
 
     def jsonable(self):
         m = {
@@ -167,6 +172,7 @@ class FutureClient(object):
     ready to extend FutureClient?"""
     
     def __init__(self,urlstring = None,name='Generic Client',max_games=1):
+        logging.info("Initializing FutureClient.")
         if not urlstring:
             urlstring = getenv('SERVER_URL',"ws://192.168.1.99:2600/socket")
         self.name = name
@@ -183,7 +189,7 @@ class FutureClient(object):
             try:
                 self.socket = create_connection(self.urlstring,5.0)
             except socket.error:
-                print "Could not connect to server. Trying again."
+                logging.info("Could not connect to server. Trying again.")
                 time.sleep(1.5)
 
         msg = {'a':'register','name':self.name}
@@ -219,7 +225,7 @@ class FutureClient(object):
 
     def on_drop(self):
         "Notification that server has dropped. Will reconnect after call."
-        print "Connection dropped; reconnecting."
+        logging.info("Connection dropped; reconnecting.")
 
     def on_session(self, msg):
         "Respond to a session update by cancelling all games and clearing messages"

@@ -36,4 +36,28 @@ Wiggle [switch x]! (meaning toggle it, and then toggle it back)
 
 Disconncted all patches!
 
+Installation
+============
+
+Install the invasion (display) script:
+  sudo cp ../VidEditConsole/invasion.init.d /etc/init.d/invasion
+  sudo update-rc.d invasion defaults 99
+
+Install the PatchConsole (game) script:
+  sudo cp PatchConsole.init.d /etc/init.d/PatchConsole
+  sudo update-rc.d PatchConsole defaults 99
+
+Reboot:
+  sudo reboot
+A
+A
+A
+A
+A
+A
+A
+A
+A
+A
+
 

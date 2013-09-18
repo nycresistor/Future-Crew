@@ -2,7 +2,7 @@
 
 APP_NAME="FCServer"
 APP_PATH="/home/pi/Future-Crew/server"
-APP_USER=pi
+APP_USER=root
 
 case "$1" in
   start)

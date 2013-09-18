@@ -43,6 +43,12 @@ class PressMessageSlot(MessageSlot):
             stdscr.addstr(self.y,self.x,text,curses.A_BLINK|curses.A_BOLD)
 
 slots = [ PressMessageSlot(1,50,10,2) ]
+
+class FC_curses(FutureClient):
+    def on_drop(self):
+        stdscr.addstr(0,0,"CONNECTION DROP",curses.A_BOLD)
+
+
 import sys
 if __name__ == '__main__':
     try:
@@ -50,7 +56,7 @@ if __name__ == '__main__':
             name=sys.argv[1]
         else:
             name='test'
-        fc = FutureClient(name=name)
+        fc = FC_curses(name=name)
         games = [
             PressGame('pg1',name,'Press button A.','A'),
             PressGame('pg2',name,'Press button B.','B') ]

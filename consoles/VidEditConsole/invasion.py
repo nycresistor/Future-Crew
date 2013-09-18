@@ -1,5 +1,17 @@
+#!/usr/bin/python
 # This code is based on a port of the Hello_Triangle example from the
 # OpenGL ES 2.0 Programming Guide.
+
+if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
+    import os
+    pid = str(os.getpid())
+    f = open('/tmp/invasion.pid', 'w')
+    f.write(pid)
+    f.close()
+
+
 from future_client import FutureClient, Game, MessageSlot
 
 from array import array
@@ -426,7 +438,9 @@ if __name__ == '__main__':
     width = eglQuerySurface(display, surface, EGL_WIDTH)
     height = eglQuerySurface(display, surface, EGL_HEIGHT)
     print width, height, native_window, display, surface
-
+    print "flush"
+    print "flush"
+    print "flush"
     text_program = create_program(text_vertex_shader_src,
                                   text_fragment_shader_src,
                                   text_bindings)

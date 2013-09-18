@@ -1,7 +1,14 @@
-from websocket import create_connection, socket
+from websocket import create_connection, socket, WebSocketException
 import json
 import time
 import threading
+import socket
+import sys
+import logging
+
+scriptname = sys.argv[0].replace('.py','')
+logging.basicConfig(filename='/var/log/fc/{}.log'.format(scriptname),format='%(asctime)s %(levelname)s:%(message)s',level=logging.DEBUG)
+
 from os import getenv
 
 class RegistrationError(Exception):
@@ -30,7 +37,7 @@ class MessageSlot(object):
         self.on_message(text)
 
     def on_message(self,text):
-        print "MESSAGE: ",text
+        logging.info("MESSAGE: {}".format(text))
 
     def jsonable(self):
         m = {
@@ -166,30 +173,34 @@ class FutureClient(object):
     ready to extend FutureClient?"""
     
     def __init__(self,urlstring = None,name='Generic Client',max_games=1):
+        logging.info("Initializing FutureClient.")
         if not urlstring:
             urlstring = getenv('SERVER_URL',"ws://192.168.1.99:2600/socket")
         self.name = name
         self.socket = None
+        self.urlstring = urlstring
+        self.message_slots = set()
+        self.available_games = set()
+        self.max_games = max_games
+        self.started = False
+        self.connect()
+
+    def connect(self):
         while (self.socket == None):
             try:
-                self.socket = create_connection(urlstring,5.0)
+                self.socket = create_connection(self.urlstring,5.0)
             except socket.error:
-                print "Could not connect to server. Trying again."
+                logging.info("Could not connect to server. Trying again.")
                 time.sleep(1.5)
 
         msg = {'a':'register','name':self.name}
         self.socket.send(json.dumps(msg))
-        self.message_slots = set()
-        self.available_games = set()
-        self.max_games = max_games
         self.state = 'reset'
         self.cmdmap = {
             'message': self.on_message,
             'control': self.on_control,
             'session_update': self.on_session
             }
-        self.started = False
-        self.Thread = None
 
     def on_message(self, msg):
         slotid = msg['slotid']
@@ -212,6 +223,10 @@ class FutureClient(object):
 
     def on_session_success(self,message,score):
         pass
+
+    def on_drop(self):
+        "Notification that server has dropped. Will reconnect after call."
+        logging.info("Connection dropped; reconnecting.")
 
     def on_session(self, msg):
         "Respond to a session update by cancelling all games and clearing messages"
@@ -264,8 +279,16 @@ class FutureClient(object):
         self.socket.settimeout(0.1)
         self.started = True
         while self.started:
-            self.poll()
-            self.status()
+            try:
+                self.poll()
+                self.status()
+            except (WebSocketException, socket.error):
+                # abort all games
+                for game in self.available_games:
+                    game.cancel()
+                self.on_drop()
+                self.socket = None
+                self.connect()
 
     def stop(self):
         self.started = False

@@ -10,7 +10,7 @@ console_map = {
         'PatchConsole':1,
         'VidEditConsole':2,
         'TeletypeConsole':3,
-        'RotaryConsole':3
+        'RotaryConsole':4
 }
 
 def match_console(console):

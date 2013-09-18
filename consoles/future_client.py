@@ -266,7 +266,8 @@ class FutureClient(object):
             msgs = self.socket.recv()
             if msgs:
                 msg = json.loads(msgs)
-                self.cmdmap[msg['a']](msg)
+                if self.cmdmap.has_key(msg['a']):
+                    self.cmdmap[msg['a']](msg)
         except socket.timeout:
             pass
 

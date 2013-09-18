@@ -12,3 +12,51 @@ buttons = {
 
 };
 
+"""
+Engage
+	warp
+	impulse
+	videoscan
+	wave variance
+	dampening
+	network
+
+Send
+	subspace
+	radio
+	key punch
+	trans-warp
+	sonic
+	
+Set
+	optima
+	config
+	pulse pattern
+	magnatomic
+	
+
+Spacebar as "TRANSMIT"
+
+Command is "Transmit code word CRUMPET"
+
+codewords:
+
+CRUMPET
+GOGGLES
+ROSEBUD
+PARASOL
+MAKER
+JOKER
+ALPHA
+BRAVO
+ROMEO
+ECHO
+FOXTROT
+PERU
+DELTA
+NOVEMBER
+TANGO
+VICTOR
+
+"""
+

@@ -37,8 +37,8 @@ class PatchVerbGame(Game):
 
     def play_game(self):
 	self.patch_from = random.choice(patches.noun_patches_lt.keys())
-	#self.patch_from = '17' #always modulate
 	self.patch_to = random.choice(patches.noun_patches_rt.keys())
+	#self.patch_from = '17' #always modulate
 	msg = "Patch the " + patches.noun_patches_lt[self.patch_from] + " to the " + patches.noun_patches_rt[self.patch_to]
 	self.update_message(msg)
 	print "Sending: " + msg + "(" + self.patch_from + ":" + self.patch_to + ")"

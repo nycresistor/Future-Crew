@@ -83,6 +83,7 @@ class HelicesGame(ButtonGame):
         else:
             elements = random.sample(helices,k)
             msg = 'Activate Helix '+', '.join(elements)
+            logging.debug("helix elements {}".format(elements))
             return ([x[1] for x in elements],msg)
 
 
@@ -97,6 +98,7 @@ class BoostersGame(ButtonGame):
         else:
             elements = random.sample(boosters,k)
             msg = 'Engage Booster '+', '.join(elements)
+            logging.debug("booster elements {}".format(elements))
             return ([x[1] for x in elements],msg)
 
 

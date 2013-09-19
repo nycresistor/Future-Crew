@@ -9,7 +9,7 @@ def remote(ip, start, services):
         c = "start"
     else:
         c = "stop"
-    cmdstr = '; '.join(["nohup sudo /etc/init.d/{} {}".format(x,c) for x in services])
+    cmdstr = '; '.join(["sudo /etc/init.d/{} {}".format(x,c) for x in services])
     l = ['ssh','-i',homepath+'/pi-key','pi@{}'.format(ip),cmdstr]
     process = subprocess.Popen(l)
     process.communicate()

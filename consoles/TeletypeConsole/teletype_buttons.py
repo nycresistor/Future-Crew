@@ -1,4 +1,49 @@
-buttons = {
+buttons = [
+'CRUMPET',
+'GOGGLES',
+'ROSEBUD',
+'PARASOL',
+'MAKER',
+'JOKER',
+'ALPHA',
+'BRAVO',
+'ROMEO',
+'ECHO',
+'FOXTROT',
+'PERU',
+'DELTA',
+'NEXUS',
+'TANGO',
+'VICTOR',
+'STARFISH',
+'PRIME',
+'PRISM',
+'POLARIS',
+'NEBULA',
+'FALCON',
+'PELICAN',
+'HALO',
+'PHANTOM',
+'RAPTOR',
+'CITADEL',
+'TARDIS',
+'ENIGMA',
+'ZINGER',
+'YODEL',
+'TWINKIE',
+'THOR',
+'ATHENA',
+'HELIOS',
+'OMEGA',
+'THETA',
+'EPSILON',
+'DAKOTA',
+'SPARROW',
+'PROTON',
+'MIRROR',
+];
+
+old_buttons = {
 9: 'RESET',
 8: 'push key punch',
 7: 'set to OPTIMA',
@@ -13,27 +58,6 @@ buttons = {
 };
 
 """
-Engage
-	warp
-	impulse
-	videoscan
-	wave variance
-	dampening
-	network
-
-Send
-	subspace
-	radio
-	key punch
-	trans-warp
-	sonic
-	
-Set
-	optima
-	config
-	pulse pattern
-	magnatomic
-	
 
 Spacebar as "TRANSMIT"
 
@@ -57,6 +81,31 @@ DELTA
 NOVEMBER
 TANGO
 VICTOR
-
+STARFISH
+PRIME
+PRISM
+POLARIS
+NEBULA
+FALCON
+PELICAN
+HALO
+PHANTOM
+RAPTOR
+CITADEL
+TARDIS
+ENIGMA
+ZINGER
+YODEL
+TWINKIE
+THOR
+ATHENA
+HELIOS
+OMEGA
+THETA
+EPSILON
+DAKOTA
+SPARROW
+PROTON
+MIRROR 
 """
 

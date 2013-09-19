@@ -174,6 +174,9 @@ class Controller:
         self.tlock.acquire()
         self.t.write('m{0}\n'.format(msg))
         self.tlock.release()
+    def attract(self):
+        for i in range(illum_count):
+            self.set_illuminated(i,0)
 
 
 
@@ -282,9 +285,11 @@ class VidEditClient(FutureClient):
 
     def on_session_fail(self,message,score):
         c.set_light('r')
+        c.attract()
 
     def on_session_success(self,message,score):
         c.set_light('g')
+        c.attract()
 
 import sys
 

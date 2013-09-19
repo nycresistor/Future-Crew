@@ -199,7 +199,8 @@ class FutureClient(object):
         self.cmdmap = {
             'message': self.on_message,
             'control': self.on_control,
-            'session_update': self.on_session
+            'session_update': self.on_session,
+	    'announcement': self.on_announcement,
             }
 
     def on_message(self, msg):
@@ -222,6 +223,9 @@ class FutureClient(object):
         pass
 
     def on_session_success(self,message,score):
+        pass
+
+    def on_session_announcement(self,message,score):
         pass
 
     def on_drop(self):

@@ -91,10 +91,11 @@ class OctoscrollerClient(FutureClient):
 
     def on_announcement(self,msg):
 	global scrolling, game_over, timeout
-	#scrolling = True
+	scrolling = True
 	#game_over = True
-	#timeout = 200
-	print "msg: " + msg
+	timeout = 200
+	print "msg: " + str(msg)
+	show_message("red", msg["message"])
 
 import sys
 

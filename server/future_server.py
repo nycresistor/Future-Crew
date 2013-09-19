@@ -270,9 +270,11 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.console.handle_status(message)
 
     def on_abort(self, message):
+        logging.info("** Aborting game")
         session.abort()
 
     def on_start(self, message):
+        logging.info("** Starting game")
         session.start()
 
     def on_update(self, msg):

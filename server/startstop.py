@@ -20,7 +20,7 @@ if __name__=='__main__':
     if argv[1] == 'start':
         msg = {'a':'session_start'}
         socket.send(json.dumps(msg))
-    elif argv[1] == 'abort':
+    elif argv[1] == 'abort' or argv[1] == 'stop':
         msg = {'a':'session_abort'}
         socket.send(json.dumps(msg))
         

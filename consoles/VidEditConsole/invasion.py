@@ -25,7 +25,8 @@ from euclid import Vector3, Matrix4
 from math import pi
 
 font.init()
-f = font.Font('./LCDWinTT/LCD-U___.TTF',48)
+#f = font.Font('./LCDWinTT/LCD-U___.TTF',48)
+f = font.Font('../Octoscroller/spincycle.ttf',46)
 
 from itertools import chain
 import time

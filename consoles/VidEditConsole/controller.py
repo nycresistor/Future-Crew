@@ -38,69 +38,96 @@ buttongame_map = {
     'RELOAD CORE':19,
 }
 
-class ButtonGame(Game):
-    def __init__(self,c,id='button_game'):
+class SingleButtonGame(Game):
+    def __init__(self,c,id='single_button_game'):
         self.c = c
-        super(ButtonGame, self).__init__(id)
+        super(SingleButtonGame, self).__init__(id)
 
-    def make_indices_and_msg(self):
-        elements = random.sample(buttongame_map.items(),1)
-        msg = ' and '.join([x[0] for x in elements])
-        indices = [x[1] for x in elements]
-        logging.debug('button {} {}'.format(indices,msg))
-        return (indices,msg)
 
     def play_game(self):
-        (targets,msg) = self.make_indices_and_msg()
+        (msg,target) = random.sample(buttongame_map.items(),1)[0]
+        logging.debug('single button {}: {}'.format(msg,target))
+
         self.update_message(msg)
-        for idx in range(illum_count):
-            if idx in targets:
-                self.c.set_illuminated(idx,random.choice([0,0,0,0,2,3,4]))
-            else:
-                if random.randint(0,2) == 1:
-                    self.c.set_illuminated(idx,random.choice([0,0,0,0,1,2,2,3,3]))
+        # randomize all buttons
+        self.c.randomize_illuminated()
+        # blink target
+        self.c.set_illuminated(target,random.choice([2,3,2,3,4]))
         starttime = time.time()
-        duration = 8.5 + (2.0 * len(targets))
+        duration = 8.5 + 2.0
         while self.is_running() and (time.time()-starttime) < duration:
             if not self.wait(0.05):
                 return
             for i in self.c.get_keypresses():
-                if i in targets:
+                if i == target:
                     self.c.set_illuminated(i,1)
-                    targets.remove(i)
-            if not targets:
-                self.finish(3)
-                return
+                    self.finish(3)
+                    return
         self.finish(-5);
 
-class HelicesGame(ButtonGame):
+class ButtonSetGame(Game):
+    def __init__(self,c,id='button_set_game'):
+        self.c = c
+        super(ButtonSetGame, self).__init__(id)
+
+    def make_indices_and_msg(self):
+        pass
+
+    def play_game(self):
+        (superl,targetl,msg) = self.make_indices_and_msg()
+        selected = set()
+        target = set(targetl)
+        superset = set(superl)
+        for idx in superl:
+            self.c.set_illuminated(idx,0)
+        self.update_message(msg)
+        starttime = time.time()
+        duration = 8.5 + (2.0 * len(target))
+        while self.is_running() and (time.time()-starttime) < duration:
+            if not self.wait(0.05):
+                return
+            for i in self.c.get_keypresses():
+                if i in selected:
+                    self.c.set_illuminated(i,0)
+                    selected.remove(i)
+                elif i in superset:
+                    self.c.set_illuminated(i,1)
+                    selected.add(i)
+            if target == selected:
+                self.finish(5)
+                return
+        for idx in superl:
+            self.c.set_illuminated(idx,2)
+        self.finish(-5);
+
+class HelicesGame(ButtonSetGame):
     def __init__(self,c,id='helices_game'):
         super(HelicesGame, self).__init__(c,id)
 
     def make_indices_and_msg(self):
-        k = random.randint(1,8)
-        if (k >= len(helices)):
-            return (helices.values(), 'ACTIVATE ALL HELICES')
+        k = random.randint(1,5)
+        if k > 3:
+            return (helices.values(),helices.values(), 'ACTIVATE ALL HELICES')
         else:
             elements = random.sample(helices.items(),k)
             msg = 'Activate Helix '+', '.join([x[0] for x in elements])
             logging.debug("helix elements {}".format(elements))
-            return ([x[1] for x in elements],msg)
+            return (helices.values(),[x[1] for x in elements],msg)
 
 
-class BoostersGame(ButtonGame):
+class BoostersGame(ButtonSetGame):
     def __init__(self,c,id='boosters_game'):
         super(BoostersGame, self).__init__(c,id)
 
     def make_indices_and_msg(self):
         k = random.randint(1,8)
-        if (k >= len(boosters)):
-            return (boosters.values(), 'ENGAGE ALL BOOSTERS')
+        if k >= 3:
+            return (boosters.values(),boosters.values(), 'ENGAGE ALL BOOSTERS')
         else:
             elements = random.sample(boosters.items(),k)
             msg = 'Engage Booster '+', '.join([x[0] for x in elements])
             logging.debug("booster elements {}".format(elements))
-            return ([x[1] for x in elements],msg)
+            return (boosters.values(),[x[1] for x in elements],msg)
 
 
 class Controller:
@@ -154,16 +181,27 @@ class Controller:
                 ipressed.append(i)
             self.imap[i] = (newp,mode)
         return ipressed
+
     def set_illuminated(self,i,mode):
         self.tlock.acquire()
         self.t.write('i{0}:{1}\n'.format(i,mode))
         self.tlock.release()
         (oldp, _) = self.imap[i]
         self.imap[i] = (oldp, mode)
+
+    def randomize_illuminated(self):
+        for idx in range(illum_count):
+            if random.randint(0,2) == 1:
+                self.set_illuminated(idx,random.choice([0,0,0,0,1,2,2,3,3,4]))
+        for idx in range(led_count):
+            if random.randint(0,2) == 1:
+                self.set_led(idx,random.choice([0,0,0,0,1,2,2,3,3,4]))
+
     def set_led(self,i,mode):
         self.tlock.acquire()
         self.t.write('l{0}:{1}\n'.format(i,mode))
         self.tlock.release()
+
     def set_light(self,colors):
         self.tlock.acquire()
         all_colors = list('rgb')
@@ -186,6 +224,8 @@ class Controller:
     def attract(self):
         for i in range(illum_count):
             self.set_illuminated(i,0)
+	for i in range(led_count):
+	    self.set_led(i,random.choice([0,2,3]))
 
 
 
@@ -274,7 +314,7 @@ c = Controller()
 c.set_light('r')
 
 games = [
-    ButtonGame(c),
+    SingleButtonGame(c),
     HelicesGame(c),
     BoostersGame(c),
 #    PressBlinkersGame(c),

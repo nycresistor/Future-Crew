@@ -9,7 +9,6 @@ case "$1" in
     echo -n "Starting $APP_NAME..."
     PYTHONPATH=.. start-stop-daemon --start \
                       --background \
-                      --no-close \
                       --pidfile /tmp/$APP_NAME.pid \
                       --make-pidfile \
                       --chuid $APP_USER \

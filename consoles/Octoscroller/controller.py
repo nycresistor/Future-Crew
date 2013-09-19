@@ -17,6 +17,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 dest = ("localhost", 9999)
 
 width = 256
+logo = Image.open("nycr.png")
 disp = Image.new("RGB", (256,16), "black")
 im = Image.new("RGB", (256,16), "black")
 im_draw = ImageDraw.Draw(im)
@@ -43,7 +44,7 @@ def send_image():
 		disp.paste(im.crop((scroll_offset+1,0,width-1,16)), (0,0))
 		scroll_offset = (scroll_offset + 1) % width
 	else:
-		disp.pase(im, (0,0))
+		disp.paste(im, (0,0))
 	sock.sendto(chr(1) + disp.tostring(), dest)
 
 #import console_locations
@@ -88,13 +89,20 @@ class OctoscrollerClient(FutureClient):
 	print("success message: '" + message + "'")
         #slots[0].on_session_success(message)
 
+    def on_announcement(self,msg):
+	global scrolling, game_over, timeout
+	#scrolling = True
+	#game_over = True
+	#timeout = 200
+	print "msg: " + msg
 
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
     scrolling = True
     scroll_offset = 0
-    show_message("blue", "FUTURE CREW: WAIT")
+    show_message("blue", "  FUTURE CREW: WAIT")
+    im.paste(logo, (0,0))
     send_image()
 
     fc = OctoscrollerClient(c)
@@ -111,7 +119,9 @@ if __name__ == '__main__' and len(sys.argv) == 1:
 			show_message("black", "")
 	    elif game_over:
 		# Attract mode; flash stuff
-		show_message(rainbow(rainbow_cycle), "Play Future Crew!")
+		show_message(rainbow(rainbow_cycle), "  Play Future   Crew!")
+	        im.paste(logo, (0,0))
+	        im.paste(logo, (170,0))
 		rainbow_cycle = (rainbow_cycle + 1) % 1024;
 	    send_image()
 	    time.sleep(0.05)

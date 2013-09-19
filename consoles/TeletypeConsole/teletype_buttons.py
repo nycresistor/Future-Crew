@@ -13,27 +13,6 @@ buttons = {
 };
 
 """
-Engage
-	warp
-	impulse
-	videoscan
-	wave variance
-	dampening
-	network
-
-Send
-	subspace
-	radio
-	key punch
-	trans-warp
-	sonic
-	
-Set
-	optima
-	config
-	pulse pattern
-	magnatomic
-	
 
 Spacebar as "TRANSMIT"
 
@@ -57,6 +36,31 @@ DELTA
 NOVEMBER
 TANGO
 VICTOR
-
+STARFISH
+PRIME
+PRISM
+POLARIS
+NEBULA
+FALCON
+PELICAN
+HALO
+PHANTOM
+RAPTOR
+CITADEL
+TARDIS
+ENIGMA
+ZINGER
+YODEL
+TWINKIE
+THOR
+ATHENA
+HELIOS
+OMEGA
+THETA
+EPSILON
+DAKOTA
+SPARROW
+PROTON
+MIRROR 
 """
 

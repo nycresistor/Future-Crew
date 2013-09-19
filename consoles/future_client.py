@@ -225,7 +225,7 @@ class FutureClient(object):
     def on_session_success(self,message,score):
         pass
 
-    def on_session_announcement(self,message,score):
+    def on_announcement(self,message,score):
         pass
 
     def on_drop(self):

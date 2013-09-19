@@ -35,7 +35,7 @@ class PressButtonGame(Game):
 
     def play_game(self):
 	self.desired = random.choice(teletype_buttons.buttons)
-	self.update_message("TX " + self.desired)
+	self.update_message("TX CODE " + self.desired)
 	print "desired: " + self.desired
 	self.desired = self.desired.lower()
 

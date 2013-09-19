@@ -113,7 +113,7 @@ class Game:
 
     def resolve(self,won,score,resultmsg):
 	# self.play_console.name returns the name of the console.
-        session.game_done(won,score)
+        session.game_done(won,score,self.play_console)
         if won:
 	    tower.queue_game_hit(self.play_console.name, session.score) 
             logging.info("+ Game {0} won, {1} points".format(self.id[1],score))

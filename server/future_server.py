@@ -113,7 +113,7 @@ class Game:
 
     def resolve(self,won,score,resultmsg):
 	# self.play_console.name returns the name of the console.
-        session.game_done(won,score)
+        session.game_done(won,score,self.play_console)
         if won:
 	    tower.queue_game_hit(self.play_console.name, session.score) 
             logging.info("+ Game {0} won, {1} points".format(self.id[1],score))
@@ -171,7 +171,6 @@ class Console:
             logging.error("Can't send message; possible that client has dropped!")
 
     def send_announcement(self,name,game_score,score,message):
-        console.send_announcement(n, score, self.score, msg)
         m_msg = {
             'a' : 'announcement',
             'message' : message,
@@ -271,9 +270,11 @@ class SpaceteamSocket(websocket.WebSocketHandler):
         self.console.handle_status(message)
 
     def on_abort(self, message):
+        logging.info("** Aborting game")
         session.abort()
 
     def on_start(self, message):
+        logging.info("** Starting game")
         session.start()
 
     def on_update(self, msg):

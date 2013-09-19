@@ -171,7 +171,6 @@ class Console:
             logging.error("Can't send message; possible that client has dropped!")
 
     def send_announcement(self,name,game_score,score,message):
-        console.send_announcement(n, score, self.score, msg)
         m_msg = {
             'a' : 'announcement',
             'message' : message,

@@ -233,6 +233,7 @@ class Console:
         else:
             self.last_game_start = time.time()
             game = random.choice(self.avail_games)
+            logging.debug("Chose game {} from {}".format(game['gameid'],[g['gameid'] for g in self.avail_games]))
             messenger = random.choice(slotavail)
             slot = random.choice(messenger.avail_slots)
             if game.get('short',False) and slot.get('slow',False):

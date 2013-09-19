@@ -108,22 +108,22 @@ def session_begin():
 	if not strip:
 		print "no strip available"
 		return
+        update_score(score)
 	# A score of '0' will be indicated by a bar of 20 LED pixels
 	# it will go up or down as the score changes
-	score = 20
-	data = ''
-	for row in range(0, score):
-		for col in range(0, strip_count):
-			data += chr(75)	
-			data += chr(75)	
-			data += chr(75)	
-	for row in range(score+1, strip_length):
-		for col in range(0, strip_count):
-			data += chr(0)	
-			data += chr(0)	
-			data += chr(0)	
-			
-       	strip.draw(data)
+	#score = 20
+	#data = ''
+	#for row in range(0, score):
+	#	for col in range(0, strip_count):
+	#		data += chr(75)	
+	#		data += chr(75)	
+	#		data += chr(75)	
+	#for row in range(score+1, strip_length):
+	#	for col in range(0, strip_count):
+	#		data += chr(0)	
+	#		data += chr(0)	
+	#		data += chr(0)	
+       	#strip.draw(data)
 
 scorepixel = array('B',[0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
 			0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
@@ -131,6 +131,12 @@ scorepixel = array('B',[0xff, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b, 0x4b,
 darkpixel = array('B',[0xff,0,0,0,0,0,0,0,
 		       0xff,0,0,0,0,0,0,0,
 		       0xff,0,0,0,0,0,0,0])
+
+def update_score(score):
+	# Update score tower
+        # currently: ignore score; dark tower
+	data = darkpixel * strip_length
+        strip.fast_draw(data)
 
 # Make strip blink red if consoles sends a miss
 def game_miss(console, score):
@@ -149,10 +155,7 @@ def game_miss(console, score):
         strip.fast_draw(data)
         # Wait.
         time.sleep(.2)
-	# Update score tower
-	data = (scorepixel * score) + (darkpixel * (strip_length - score))
-        strip.fast_draw(data)
-
+        update_score(score)
 
 # Make strip blink white if console sends a hit
 #def hit():
@@ -174,9 +177,7 @@ def game_hit(console, score):
         strip.fast_draw(data)
         # Wait.
         time.sleep(.2)
-	# Update score tower
-	data = (scorepixel * score) + (darkpixel * (strip_length - score))
-        strip.fast_draw(data)
+        update_score(score)
 
 # Make all strips blink red if servers declares game is lost
 def session_lost():

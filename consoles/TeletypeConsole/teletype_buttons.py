@@ -12,7 +12,7 @@ buttons = [
 'FOXTROT',
 'PERU',
 'DELTA',
-'NOVEMBER',
+'NEXUS',
 'TANGO',
 'VICTOR',
 'STARFISH',

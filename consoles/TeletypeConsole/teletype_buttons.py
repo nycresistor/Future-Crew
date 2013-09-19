@@ -1,4 +1,23 @@
-buttons = {
+buttons = [
+'CRUMPET',
+'GOGGLES',
+'ROSEBUD',
+'PARASOL',
+'MAKER',
+'JOKER',
+'ALPHA',
+'BRAVO',
+'ROMEO',
+'ECHO',
+'FOXTROT',
+'PERU',
+'DELTA',
+'NOVEMBER',
+'TANGO',
+'VICTOR',
+];
+
+old_buttons = {
 9: 'RESET',
 8: 'push key punch',
 7: 'set to OPTIMA',

@@ -38,9 +38,9 @@ buttongame_map = {
 }
 
 class ButtonGame(Game):
-    def __init__(self,c):
+    def __init__(self,c,id='button_game'):
         self.c = c
-        super(ButtonGame, self).__init__('button_game')
+        super(ButtonGame, self).__init__(id)
 
     def make_indices_and_msg(self):
         elements = random.sample(buttongame_map.items(),1)
@@ -73,6 +73,9 @@ class ButtonGame(Game):
         self.finish(-5);
 
 class HelicesGame(ButtonGame):
+    def __init__(self,c,id='helices_game'):
+        super(HelicesGame, self).__init__(c,id)
+
     def make_indices_and_msg(self):
         k = random.randint(1,8)
         if (k >= len(helices)):
@@ -84,6 +87,9 @@ class HelicesGame(ButtonGame):
 
 
 class BoostersGame(ButtonGame):
+    def __init__(self,c,id='boosters_game'):
+        super(BoostersGame, self).__init__(c,id)
+
     def make_indices_and_msg(self):
         k = random.randint(1,8)
         if (k >= len(boosters)):

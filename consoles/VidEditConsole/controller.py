@@ -6,6 +6,7 @@ import time
 import struct
 import random
 import threading
+import logging
 
 illum_count = 25
 led_count = 12
@@ -46,7 +47,7 @@ class ButtonGame(Game):
         elements = random.sample(buttongame_map.items(),1)
         msg = ' and '.join([x[0] for x in elements])
         indices = [x[1] for x in elements]
-        print indices, msg
+        logging.debug('button {} {}'.format(indices,msg))
         return (indices,msg)
 
     def play_game(self):
@@ -81,8 +82,8 @@ class HelicesGame(ButtonGame):
         if (k >= len(helices)):
             return (helices.values(), 'ACTIVATE ALL HELICES')
         else:
-            elements = random.sample(helices,k)
-            msg = 'Activate Helix '+', '.join(elements)
+            elements = random.sample(helices.items(),k)
+            msg = 'Activate Helix '+', '.join([x[0] for x in elements])
             logging.debug("helix elements {}".format(elements))
             return ([x[1] for x in elements],msg)
 
@@ -96,8 +97,8 @@ class BoostersGame(ButtonGame):
         if (k >= len(boosters)):
             return (boosters.values(), 'ENGAGE ALL BOOSTERS')
         else:
-            elements = random.sample(boosters,k)
-            msg = 'Engage Booster '+', '.join(elements)
+            elements = random.sample(boosters.items(),k)
+            msg = 'Engage Booster '+', '.join([x[0] for x in elements])
             logging.debug("booster elements {}".format(elements))
             return ([x[1] for x in elements],msg)
 

@@ -11,21 +11,39 @@ import random
 import Image, ImageFont, ImageDraw
 import socket
 import time, datetime
+from colorsys import hsv_to_rgb
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 dest = ("localhost", 9999)
 
 width = 256
 disp = Image.new("RGB", (256,16), "black")
-draw = ImageDraw.Draw(disp)
+im = Image.new("RGB", (256,16), "black")
+im_draw = ImageDraw.Draw(im)
 font = ImageFont.truetype("spincycle.ttf", 24)
 
+timeout = 0
+game_over = True
+scrolling = True
+scroll_offset = 128
+rainbow_cycle = 0
+
+def rainbow(i):
+	rgb = [int(x*256) for x in hsv_to_rgb(i/1024.0,0.8,0.8)]
+	return (rgb[0],rgb[1],rgb[2])
 
 def show_message(c,s):
-	disp.paste("black", (0,0,width,16))
-	draw.text((0, -4), s, font=font, fill=c)
+	im.paste("black", (0,0,width,16))
+	im_draw.text((0, -4), s, font=font, fill=c)
 
-	# Slice a 256 size image from the large image
+def send_image():
+	global scroll_offset
+	if scrolling:
+		disp.paste(im.crop((0,0,scroll_offset,16)), (width-scroll_offset,0))
+		disp.paste(im.crop((scroll_offset+1,0,width-1,16)), (0,0))
+		scroll_offset = (scroll_offset + 1) % width
+	else:
+		disp.pase(im, (0,0))
 	sock.sendto(chr(1) + disp.tostring(), dest)
 
 #import console_locations
@@ -46,25 +64,56 @@ class OctoscrollerClient(FutureClient):
 
     def on_session_start(self,message):
         #slots[0].on_session_start(message)
-	show_message("white", "FUTURE CREW START");
+	global scrolling, game_over, timeout
+	scrolling = True
+	game_over = False
+	timeout = 200
+	print("Received message: '" + message + "'")
+	show_message("white", message)
 
     def on_session_fail(self,message,score):
-	show_message("red", "YOUR FUTURE CREW HAS FAILED")
+	global scrolling, game_over, timeout
+	scrolling = True
+	game_over = True
+	timeout = 200
+	print("fail message: '" + message + "'")
+	show_message("red", message)
 
     def on_session_success(self,message,score):
-	show_message("blue", "FUTURE CREW WINS")
+	global scrolling, game_over, timeout
+	scrolling = True
+	game_over = True
+	timeout = 200
+	show_message("blue", message)
+	print("success message: '" + message + "'")
         #slots[0].on_session_success(message)
 
 
 import sys
 
 if __name__ == '__main__' and len(sys.argv) == 1:
+    scrolling = True
+    scroll_offset = 0
+    show_message("blue", "FUTURE CREW: WAIT")
+    send_image()
+
     fc = OctoscrollerClient(c)
     fc.available_games = games
     fc.message_slots = slots
     fc.start()
     try:
 	while True:
+ 	    if timeout > 0:
+		# Just keep showing stuff
+		timeout = timeout - 1
+		if timeout == 0:
+			# Blank the screen
+			show_message("black", "")
+	    elif game_over:
+		# Attract mode; flash stuff
+		show_message(rainbow(rainbow_cycle), "Play Future Crew!")
+		rainbow_cycle = (rainbow_cycle + 1) % 1024;
+	    send_image()
 	    time.sleep(0.05)
     except:
 	print "except"

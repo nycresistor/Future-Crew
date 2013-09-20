@@ -357,7 +357,7 @@ chords = [  [0, 'MAJOR'],
             [5, 'MINOR'] ] 
 
 fc = FutureClient(name="ToyPianoClient", urlstring="ws://192.168.1.99:2600/socket")
-fc.available_games = [PlayOneNote(controller, i) for i in controller.allKeys] + [TinySongGame(controller, i[0], i[1]) for i in songs] + [PlayChords(controller, i[0], i[1]) for i in chords]
+fc.available_games = [PlayOneNote(controller, i) for i in controller.allKeys] + [TinySongGame(controller, i[0], i[1]) for i in songs]
      
 fc.message_slots = [LCDMessageSlot('PrintSlot', controller.lcd)]
 
